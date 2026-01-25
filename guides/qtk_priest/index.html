@@ -1,116 +1,266 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<style>
-    :root {
-        --bg-dark: #0f172a;
-        --card-bg: #1e293b;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --accent-gradient: linear-gradient(to right, #3b82f6, #8b5cf6); /* Синий -> Пурпурный */
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hearthstone Deck Guide Template</title>
+    <style>
+        :root {
+            /* Цветовая палитра */
+            --primary-purple: #a855f7;       /* Основной пурпурный */
+            --primary-glow: rgba(168, 85, 247, 0.3);
+            --bg-card: rgba(18, 18, 24, 0.95); /* Темный фон блоков (почти непрозрачный) */
+            --text-main: #ffffff;
+            --text-secondary: #cbd5e1;
+            --border-radius: 12px;
+            --spacing: 24px;
+        }
 
-    body {
-        background-color: var(--bg-dark);
-        color: var(--text-primary);
-        font-family: 'Roboto', sans-serif;
-        line-height: 1.6;
-        padding: 40px;
-    }
+        /* Базовые настройки для Iframe */
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: transparent; /* Прозрачный фон для iframe */
+            font-family: system-ui, -apple-system, sans-serif;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
 
-    .guide-wrapper {
-        max-width: 800px;
-        margin: 0 auto;
-    }
+        /* Контейнер статьи */
+        .guide-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-    /* Стилизация заголовков с градиентной линией */
-    h2 {
-        font-size: 1.8rem;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+        /* Заголовок (H1) */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            border-bottom: 3px solid var(--primary-purple);
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
 
-    h2::after {
-        content: '';
-        height: 2px;
-        flex-grow: 1;
-        background: var(--accent-gradient);
-    }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-    .section-box {
-        background: var(--card-bg);
-        border-radius: 8px;
-        padding: 24px;
-        margin-bottom: 30px;
-        border-left: 4px solid #8b5cf6; /* Пурпурный акцент слева */
-    }
+        .meta-tags {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
 
-    .mulligan-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
-    }
+        .tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--primary-purple);
+            font-weight: bold;
+            border: 1px solid var(--primary-purple);
+        }
 
-    .card-placeholder {
-        background: #334155;
-        height: 160px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        border: 1px dashed #475569;
-    }
+        /* Общие стили секций */
+        section {
+            background: var(--bg-card);
+            padding: var(--spacing);
+            margin-bottom: var(--spacing);
+            border-radius: var(--border-radius);
+            border-left: 4px solid transparent;
+            transition: border-color 0.3s ease;
+        }
 
-    .badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        background: rgba(59, 130, 246, 0.2);
-        color: #60a5fa;
-        margin-right: 10px;
-    }
+        section:hover {
+            border-left: 4px solid var(--primary-purple);
+        }
 
-    .highlight {
-        color: #c084fc; /* Светлый пурпур */
-        font-weight: bold;
-    }
-</style>
+        h2 {
+            color: var(--primary-purple);
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        p, li {
+            color: var(--text-secondary);
+        }
+
+        /* Деклист и Код */
+        .deck-code-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            word-break: break-all;
+            border: 1px dashed var(--primary-purple);
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .copy-btn {
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            margin: 10px auto 0;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #9333ea;
+        }
+
+        /* Муллиган */
+        .mulligan-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .mulligan-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card-group {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        /* Матчапы */
+        .matchup-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+        }
+
+        .matchup-icon {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .good { background-color: #4ade80; box-shadow: 0 0 8px #4ade80; }
+        .bad { background-color: #f87171; box-shadow: 0 0 8px #f87171; }
+
+        /* Выделение карт в тексте */
+        .card-ref {
+            color: #e879f9; /* Светло-пурпурный */
+            font-weight: bold;
+            cursor: help;
+            border-bottom: 1px dotted #e879f9;
+        }
+
+        /* Заключение */
+        .footer-verdict {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+    </style>
 </head>
 <body>
 
-<div class="guide-wrapper">
-    <header style="text-align: center; margin-bottom: 50px;">
-        <h1 style="font-size: 3rem; margin: 0; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Abyssal Warlock
-        </h1>
-        <p style="color: var(--text-secondary);">Гайд от ProPlayer • Обновлено: Январь 2026</p>
-    </header>
+    <div class="guide-container">
 
-    <div class="section-box">
-        <h2><span class="badge">Муллиган</span> Что искать в руку?</h2>
-        <p>Против агрессии всегда оставляйте <span class="highlight">Defile</span> и <span class="highlight">Dark Skies</span>. Если вы ходите первым, ищите дропы за 1 ману.</p>
+        <header>
+            <h1>Название Архетипа</h1>
+            <div class="meta-tags">
+                <span class="tag">Маг</span>
+                <span class="tag">Патч 28.2</span>
+                <span class="tag">Легенда Топ-100</span>
+                <span class="tag">Стоимость: 8200 пыли</span>
+            </div>
+        </header>
 
-        <div class="mulligan-grid">
-            <div class="card-placeholder">Карта 1</div>
-            <div class="card-placeholder">Карта 2</div>
-            <div class="card-placeholder">Карта 3</div>
-        </div>
+        <section>
+            <h2>Введение</h2>
+            <p>Здесь располагается лид-абзац. Краткое описание стиля игры (агро/контроль). Почему эта колода сейчас разрывает ладдер и почему читателю стоит собрать именно её.</p>
+        </section>
+
+        <section>
+            <h2>Код колоды</h2>
+            <p>В этой сборке мы используем <span class="card-ref">Ключевую Карту</span> для максимального темпа.</p>
+
+            <div class="deck-code-box">
+                AAECAf0EBtjsA53uA6CKBPfyBdD4BdH4BQz8ngT9ngT+ngSIsgS8sgSWtwTcuQThuQSywQTY2QSUpAXs9gUA
+                <button class="copy-btn">Скопировать код</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Муллиган</h2>
+            <div class="mulligan-grid">
+                <div class="card-group">
+                    <h3>✅ Оставлять всегда</h3>
+                    <ul>
+                        <li><span class="card-ref">Карта 1</span></li>
+                        <li><span class="card-ref">Карта 2</span></li>
+                    </ul>
+                </div>
+                <div class="card-group">
+                    <h3>⚠️ Ситуативно</h3>
+                    <ul>
+                        <li><span class="card-ref">Карта 3</span> (против Агро)</li>
+                        <li><span class="card-ref">Карта 4</span> (с Монеткой)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Стратегия игры</h2>
+            <h3>Ранняя игра (1-3 мана)</h3>
+            <p>Описание действий в начале матча. Важность захвата стола.</p>
+
+            <h3>Мидгейм и Лейт</h3>
+            <p>Описание ключевых комбинаций и выхода на летал.</p>
+        </section>
+
+        <section>
+            <h2>Матчапы</h2>
+            <div class="matchup-bar">
+                <div class="matchup-icon good"></div>
+                <div><strong>Друид:</strong> Легкий матчап. Мы быстрее разгоняемся.</div>
+            </div>
+            <div class="matchup-bar">
+                <div class="matchup-icon bad"></div>
+                <div><strong>Воин:</strong> Сложный матчап. Нужно играть агрессивно до 6 хода.</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Заключение</h2>
+            <p class="footer-verdict">Эта колода — лучший выбор для быстрого взятия Легенды в этом сезоне.</p>
+        </section>
+
     </div>
-
-    <div class="section-box" style="border-left-color: #3b82f6;"> <h2>План на игру</h2>
-        <ul>
-            <li><strong>Ранняя игра:</strong> Выживание и добор карт.</li>
-            <li><strong>Мид-гейм:</strong> Зачистка стола.</li>
-            <li><strong>Лейт-гейм:</strong> Розыгрыш Саргераса.</li>
-        </ul>
-    </div>
-</div>
 
 </body>
 </html>
