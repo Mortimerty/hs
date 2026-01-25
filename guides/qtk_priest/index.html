@@ -2,12 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <style>
         :root {
-            --main-width: 600px;
-            /* Настраиваем цвета тени под твой стиль */
-            --shadow-color: rgba(139, 92, 246, 0.4); /* Пурпурный */
-            --glow-color: rgba(59, 130, 246, 0.3);   /* Синий */
+            /* Теперь это максимальная ширина, на больших экранах будет 600px */
+            --max-guide-width: 600px;
+            --shadow-color: rgba(139, 92, 246, 0.4);
+            --glow-color: rgba(59, 130, 246, 0.3);
         }
 
         body {
@@ -15,16 +15,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* padding: 50px 0; */
+            padding: 20px 10px; /* Уменьшил padding, чтобы на мобилках было больше места */
             margin: 0;
         }
 
-        /* Контейнер с тенью */
         .guide-container {
-            width: var(--main-width);
+            /* Резиновая ширина: 100% от экрана, но не больше 600px */
+            width: 100%;
+            max-width: var(--max-guide-width);
             display: flex;
             flex-direction: column;
-            /* drop-shadow учитывает прозрачность PNG-картинок */
             filter:
                 drop-shadow(0 5px 10px var(--shadow-color))
                 drop-shadow(0 0 10px var(--glow-color));
@@ -32,33 +32,49 @@
 
         .scroll-top {
             width: 100%;
-            height: 100px;
+            /* Чтобы пропорции картинки не ломались при сужении,
+               можно использовать aspect-ratio или фиксированную высоту */
+            height: 80px;
             background: url('bg-top.png') no-repeat center bottom;
             background-size: 100% 100%;
-            margin: 0;
         }
 
         .scroll-middle {
             width: 100%;
             background: url('bg-middle.png') repeat-y center;
             background-size: 100% auto;
-            margin: 0;
-            padding: 10px 60px;
+            /* Адаптивные отступы: на больших экранах 60px, на маленьких 10% */
+            padding: 10px 10%;
             box-sizing: border-box;
-            color: #333; /* Поменял на темный, так как фон body светлый */
+            color: #333;
         }
 
         .scroll-bottom {
             width: 100%;
-            height: 100px;
+            height: 80px;
             background: url('bg-bottom.png') no-repeat center top;
             background-size: 100% 100%;
-            margin: 0;
         }
 
         .content {
             font-family: 'Arial', sans-serif;
             line-height: 1.6;
+            /* Чтобы длинные слова или ссылки не распирали блок */
+            word-wrap: break-word;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 5vw, 2rem); /* Заголовок уменьшается на мобильных */
+        }
+
+        /* Медиа-запрос для совсем маленьких экранов */
+        @media (max-width: 480px) {
+            .scroll-middle {
+                padding: 10px 30px; /* Еще меньше отступы по бокам */
+            }
+            .scroll-top, .scroll-bottom {
+                height: 60px; /* Уменьшаем высоту декоративных частей */
+            }
         }
     </style>
 </head>
@@ -69,9 +85,9 @@
 
         <div class="scroll-middle">
             <div class="content">
-                <h1 style="color: #6e48aa; text-align: center;">Заголовок Гайда</h1>
-                <p>К этому блоку применена комбинированная тень: мягкая пурпурная для объема и широкая синяя для эффекта магического свечения.</p>
-                <p>Обрати внимание, что <code>filter: drop-shadow</code> наложен на весь контейнер сразу, поэтому тень выглядит как единое целое для всех трех частей фона.</p>
+                <h1 style="color: #6e48aa; text-align: center;">Адаптивный Гайд</h1>
+                <p>Теперь контейнер использует <code>max-width</code>. Если экран станет уже 600px, гайд просто сожмется под его размер, не создавая горизонтальную прокрутку.</p>
+                <p>Мы также использовали <code>padding: 10%</code> для контента, чтобы текст не прилипал к краям картинки на смартфонах.</p>
             </div>
         </div>
 
