@@ -1,39 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <title></title>
+<style>
+    :root {
+        --bg-dark: #0f172a;
+        --card-bg: #1e293b;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --accent-gradient: linear-gradient(to right, #3b82f6, #8b5cf6); /* Синий -> Пурпурный */
+    }
+
+    body {
+        background-color: var(--bg-dark);
+        color: var(--text-primary);
+        font-family: 'Roboto', sans-serif;
+        line-height: 1.6;
+        padding: 40px;
+    }
+
+    .guide-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Стилизация заголовков с градиентной линией */
+    h2 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    h2::after {
+        content: '';
+        height: 2px;
+        flex-grow: 1;
+        background: var(--accent-gradient);
+    }
+
+    .section-box {
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 30px;
+        border-left: 4px solid #8b5cf6; /* Пурпурный акцент слева */
+    }
+
+    .mulligan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .card-placeholder {
+        background: #334155;
+        height: 160px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        border: 1px dashed #475569;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        margin-right: 10px;
+    }
+
+    .highlight {
+        color: #c084fc; /* Светлый пурпур */
+        font-weight: bold;
+    }
+</style>
 </head>
 <body>
-	<div style="font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; color: #333; line-height: 1.6;">
 
-		<div style="background-color: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-			<h1 style="margin: 0;">Название вашей колоды</h1>
-			<p style="margin: 5px 0 0 0; opacity: 0.8;">Класс: Маг | Винрейт: 58% | Пыль: 8400</p>
-		</div>
+<div class="guide-wrapper">
+    <header style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 3rem; margin: 0; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Abyssal Warlock
+        </h1>
+        <p style="color: var(--text-secondary);">Гайд от ProPlayer • Обновлено: Январь 2026</p>
+    </header>
 
-		<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+    <div class="section-box">
+        <h2><span class="badge">Муллиган</span> Что искать в руку?</h2>
+        <p>Против агрессии всегда оставляйте <span class="highlight">Defile</span> и <span class="highlight">Dark Skies</span>. Если вы ходите первым, ищите дропы за 1 ману.</p>
 
-			<div style="flex: 2; min-width: 300px;">
-				<h2 style="border-bottom: 2px solid #3498db; padding-bottom: 10px; color: #2c3e50;">Муллиган</h2>
-				<p>Здесь опишите, какие карты искать в стартовую руку. Используйте <strong>жирный шрифт</strong> для названий карт.</p>
-				<ul>
-					<li>Карта А — всегда оставляем.</li>
-					<li>Карта Б — только с монеткой.</li>
-				</ul>
+        <div class="mulligan-grid">
+            <div class="card-placeholder">Карта 1</div>
+            <div class="card-placeholder">Карта 2</div>
+            <div class="card-placeholder">Карта 3</div>
+        </div>
+    </div>
 
-				<h2 style="border-bottom: 2px solid #3498db; padding-bottom: 10px; color: #2c3e50;">Стратегия</h2>
-				<p>Ваш основной план на игру...</p>
-			</div>
+    <div class="section-box" style="border-left-color: #3b82f6;"> <h2>План на игру</h2>
+        <ul>
+            <li><strong>Ранняя игра:</strong> Выживание и добор карт.</li>
+            <li><strong>Мид-гейм:</strong> Зачистка стола.</li>
+            <li><strong>Лейт-гейм:</strong> Розыгрыш Саргераса.</li>
+        </ul>
+    </div>
+</div>
 
-			<div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
-				<h3 style="margin-top: 0; color: #e74c3c;">Ключевые комбо</h3>
-				<p style="font-size: 0.9em;">Не играйте Карту X без Карты Y, иначе потеряете темп.</p>
-				<hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
-				<h3 style="margin-top: 0; color: #27ae60;">Замены карт</h3>
-				<p style="font-size: 0.9em;">Если нет Легендарки Z, можно взять Эпик W.</p>
-			</div>
-		</div>
-	</div>
 </body>
 </html>
