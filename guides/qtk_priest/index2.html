@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --max-guide-width: 600px;
+            --shadow-color: rgba(139, 92, 246, 0.4);
+            --glow-color: rgba(59, 130, 246, 0.3);
+            /* Цвет текста для лучшей читаемости на пергаменте */
+            --text-ink: #2b221b;
+        }
+
+        body {
+            background-color: #f3eddd;
+            display: flex;
+            justify-content: center;
+            padding: 40px 10px;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .guide-container {
+            width: 100%;
+            max-width: var(--max-guide-width);
+
+            /* ЕДИНЫЙ ФОН: теперь он здесь */
+            background: #ddc481 url('bg.png') center;
+            background-size: 100% auto;
+
+            /* Закругление краев, раз уж нет отдельных крышек свитка */
+            border-radius: 12px;
+            border: 2px solid #c4b197;
+
+            /* Твои фирменные тени */
+            filter:
+                drop-shadow(0 5px 10px var(--shadow-color))
+                drop-shadow(0 0 10px var(--glow-color));
+
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .content {
+            padding: 40px 10%; /* Равномерные отступы со всех сторон */
+            color: var(--text-ink);
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            text-align: center;
+            color: #6e48aa;
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="guide-container">
+        <article class="content">
+            <h1>Магия одного фона</h1>
+            <p>Теперь весь гайд — это единый блок. Мы перенесли повторяющееся изображение <code>bg.png</code> прямо в основной контейнер.</p>
+            <p><strong>Что это дает:</strong></p>
+            <ul>
+                <li>Никаких стыков между верхней, средней и нижней частями.</li>
+                <li>Макет стал еще более адаптивным.</li>
+                <li>Проще управлять тенями и закруглениями углов.</li>
+            </ul>
+            <p>Просто убедись, что твоя картинка <code>bg.png</code> бесшовная по вертикали, и она будет бесконечно тянуться вслед за твоим текстом.</p>
+        </article>
+    </div>
+
+</body>
+</html>
