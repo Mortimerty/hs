@@ -47,23 +47,28 @@
 
         .scroll-top {
             width: 100%;
-            height: 205px;
+            /* height: 205px;  <- Убрали фиксированную высоту */
+            /* (205 / 898) * 100 = 22.8285% */
+            padding-bottom: 22.8285%;
             background: url('bg-top2.png') no-repeat center bottom;
             background-size: 100% 100%;
         }
 
         .scroll-middle {
             width: 100%;
-            /* height: 100px; */
             background: url('bg-middle2.png') repeat-y center;
             background-size: 100% auto;
-            padding: 10px 10%;
+            padding: 0 10%; /* Немного уменьшил верхний паддинг для лучшей стыковки */
             box-sizing: border-box;
+            /* Убираем возможные микро-щели между блоками */
+            margin: -1px 0;
         }
 
         .scroll-bottom {
             width: 100%;
-            height: 263px;
+            /* height: 263px; <- Убрали фиксированную высоту */
+            /* (263 / 898) * 100 = 29.2873% */
+            padding-bottom: 29.2873%;
             background: url('bg-bottom2.png') no-repeat center top;
             background-size: 100% 100%;
         }
