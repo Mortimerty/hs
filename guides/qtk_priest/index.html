@@ -544,134 +544,114 @@
     font-style: italic;
 }
 
-/* --- TACTICAL MAP CONTAINER (FIXED) --- */
-
-.deck-viewport {
+/* --- ОСНОВНОЙ КОНТЕЙНЕР --- */
+.drag-viewport {
     position: relative;
     width: 100%;
-    margin: 30px 0;
-    background: #150a18;
-    border: 2px solid var(--wood-dark);
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
-    border-radius: 6px;
-    overflow: hidden;
-    transition: height 0.3s ease;
+    margin: 20px 0;
 
-    /* Для предотвращения выделения синим при двойном клике */
-    user-select: none;
-    -webkit-user-select: none;
+    /* Дефолтное состояние: просто обертка вокруг картинки */
+    height: auto;
+
+    background: #150a18; /* Фон "под" картинкой */
+    border: 1px solid rgba(61, 43, 31, 0.3);
+    border-radius: 8px;
+    overflow: hidden; /* Обрезаем всё, что вылезает */
+
+    transition: height 0.3s ease, border-color 0.3s;
+    user-select: none; /* Чтобы текст не выделялся при перетаскивании */
 }
 
-/* Область прокрутки */
-.deck-scroll-area {
+/* --- ОБЛАСТЬ ПРОКРУТКИ --- */
+.drag-scroll-area {
     width: 100%;
     height: 100%;
-
-    /* ВАЖНО: Убрали display: flex и justify-content: center */
-    display: block;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    /* Скрываем скроллбары */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    overflow: auto; /* Включаем скролл */
     cursor: zoom-in;
 
-    /* Инерция для iOS */
-    -webkit-overflow-scrolling: touch;
+    /* Скрываем полосы прокрутки (эстетика) */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.drag-scroll-area::-webkit-scrollbar { display: none; }
 
-.deck-scroll-area::-webkit-scrollbar { display: none; }
-
-/* Картинка */
-.deck-img-content {
+/* --- КАРТИНКА --- */
+.drag-image {
     display: block;
-    height: auto;
-    /* По умолчанию картинка растянута на ширину контейнера */
+
+    /* В свернутом виде: вписана в ширину */
     width: 100%;
-    margin: 0;
+    height: auto;
+
+    /* В свернутом виде: запрещаем ей быть больше контейнера */
+    max-width: 100%;
+
     transition: width 0.3s ease;
-    -webkit-user-drag: none;
+    -webkit-user-drag: none; /* Запрет браузерного драга фантома */
 }
 
-/* --- КНОПКА ЗАКРЫТИЯ (НОВОЕ) --- */
-.map-close-btn {
+/* --- КНОПКА ЗАКРЫТИЯ --- */
+.drag-close-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 36px;
-    height: 36px;
-    background: rgba(185, 28, 28, 0.9); /* Красный цвет */
-    border: 2px solid var(--hs-gold);
+    top: 10px; right: 10px;
+    width: 40px; height: 40px;
+    background: #b91c1c;
+    border: 2px solid #e3c98e;
     border-radius: 50%;
     color: white;
-    font-size: 20px;
-    line-height: 32px; /* Выравнивание крестика */
+    font-size: 24px;
+    line-height: 36px;
     text-align: center;
     cursor: pointer;
-    opacity: 0;
-    transform: scale(0.5);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 10;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
 
-    /* Запрещаем клику по кнопке "проваливаться" в драг */
+    /* Скрыта пока не развернули */
+    opacity: 0;
     pointer-events: none;
+    transform: scale(0.5);
+    transition: all 0.3s;
 }
 
-/* --- СОСТОЯНИЕ: АКТИВЕН --- */
-
-.deck-viewport.is-active {
-    border-color: var(--hs-gold);
-}
-
-.deck-viewport.is-active .deck-scroll-area {
-    cursor: grab; /* Курсор-ладошка */
-}
-
-.deck-viewport.is-active .deck-scroll-area:active {
-    cursor: grabbing;
-}
-
-.deck-viewport.is-active .deck-img-content {
-    /* При раскрытии делаем картинку большой */
-    width: auto;
-    min-width: 150%; /* Минимум в 1.5 раза шире экрана */
-    max-width: none;
-}
-
-/* Показываем кнопку закрытия только когда активно */
-.deck-viewport.is-active .map-close-btn {
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto; /* Разрешаем кликать */
-}
-
-/* Подсказка внизу */
-.viewport-hint {
+/* --- ПОДСКАЗКА --- */
+.drag-hint {
     position: absolute;
-    bottom: 10px;
-    left: 0;
-    width: 100%;
+    bottom: 10px; left: 0; width: 100%;
     text-align: center;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem;
     pointer-events: none;
-    opacity: 1; /* Видна всегда для подсказки первого клика */
     transition: opacity 0.3s;
 }
 
-.viewport-hint span {
-    background: rgba(0, 0, 0, 0.6);
-    color: var(--hs-gold-bright);
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 0.75rem;
+/* =========================================
+   СОСТОЯНИЕ: РАЗВЕРНУТО (ACTIVE)
+   ========================================= */
+
+.drag-viewport.is-active {
+    /* Рамка загорается золотым */
+    border-color: #e3c98e;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
 
-/* Скрываем подсказку при открытии, чтобы не мешала обзору */
-.deck-viewport.is-active .viewport-hint {
-    opacity: 0;
+.drag-viewport.is-active .drag-scroll-area {
+    cursor: grab; /* Курсор-ладошка */
 }
+
+.drag-viewport.is-active .drag-scroll-area:active {
+    cursor: grabbing; /* Сжатая ладошка */
+}
+
+.drag-viewport.is-active .drag-image {
+    /* ГЛАВНОЕ: Отменяем ограничения! */
+    width: auto;       /* Ширина станет натуральной */
+    max-width: none;   /* Убираем лимит */
+    min-width: 600px;  /* Но не меньше 600px, чтобы текст читался */
+    margin: 0;         /* Убираем центрирование */
+}
+
+/* Показываем кнопку и скрываем подсказку */
+.drag-viewport.is-active .drag-close-btn { opacity: 1; transform: scale(1); pointer-events: auto; }
+.drag-viewport.is-active .drag-hint { opacity: 0; }
     </style>
 </head>
 <body>
@@ -695,17 +675,20 @@
                 <p>Приветствую в таверне! Этот древний свиток раскроет тебе секреты самой непредсказуемой колоды текущей меты. Ключ к успеху кроется в твоем умении использовать <a href="#" class="card-ref">Тайный ход</a> в нужный момент.</p>
 
                 <h2>Состав колоды</h2>
-                <div class="deck-viewport" id="deckMap">
-                    <div class="map-close-btn" onclick="closeMap(event)">×</div>
+                <div class="drag-viewport" id="deckViewport">
 
-                    <div class="deck-scroll-area" id="deckScroll" onclick="activateMap()">
-                        <img src="deck.png" alt="Deck List" class="deck-img-content" id="deckImg">
+                    <div class="drag-close-btn" onclick="toggleDragMode(event)">×</div>
+
+                    <div class="drag-scroll-area" id="dragArea" onmousedown="startDrag(event)" onclick="toggleDragMode(event)">
+                        <img src="deck.png" alt="Deck List" class="drag-image" id="dragImg">
                     </div>
 
-                    <div class="viewport-hint">
-                        <span id="hintText">Нажмите для увеличения</span>
-                    </div>
+                    <div class="drag-hint" id="dragHint">Нажмите, чтобы развернуть</div>
                 </div>
+
+                <p style="text-align: center; opacity: 0.6; font-size: 0.9rem;">
+                    <small>Нажмите на картинку для детального просмотра</small>
+                </p>
 
                 <!-- <h2>Got multiple</h2>
                 <div class="deck-stone stone-block">
@@ -839,82 +822,96 @@
             }
         });
 
-        const viewport = document.getElementById('deckMap');
-const scrollArea = document.getElementById('deckScroll');
-const img = document.getElementById('deckImg');
-let isExpanded = false;
+        const viewport = document.getElementById('deckViewport');
+const scrollArea = document.getElementById('dragArea');
+const img = document.getElementById('dragImg');
 
-function activateMap() {
-    // Если мы сейчас "тащим" карту мышкой, клик не должен срабатывать
+let isActive = false;
+
+// ПЕРЕКЛЮЧЕНИЕ РЕЖИМА
+function toggleDragMode(e) {
+    // Если это было перетаскивание, а не клик - игнорируем
     if (isDragging) return;
-    if (isExpanded) return; // Если уже открыто, ничего не делаем (закрываем крестиком)
 
-    isExpanded = true;
-    viewport.classList.add('is-active');
+    // Останавливаем всплытие, чтобы клик по крестику не сработал дважды
+    if (e) e.stopPropagation();
 
-    // 1. Увеличиваем высоту окна (например, в 1.5 раза от текущей)
-    // Можно поставить фиксированную, например: viewport.style.height = '600px';
-    const currentHeight = viewport.offsetHeight;
-    viewport.style.height = (currentHeight * 1.5) + 'px';
+    if (!isActive) {
+        // --- ОТКРЫВАЕМ ---
+        isActive = true;
+        viewport.classList.add('is-active');
 
-    // 2. Ждем применения CSS (увеличения картинки)
-    setTimeout(() => {
-        // 3. Вычисляем центр
-        // (Ширина картинки - Ширина видимой области) / 2
-        const centerPosition = (img.offsetWidth - scrollArea.offsetWidth) / 2;
+        // 1. Задаем высоту "окна" (70% от высоты экрана пользователя)
+        // Это создает эффект "прорези", через которую мы смотрим на большую карту
+        const windowHeight = window.innerHeight * 0.7;
+        viewport.style.height = windowHeight + 'px';
 
-        // 4. Мгновенно переносим скролл в центр
-        scrollArea.scrollLeft = centerPosition;
-    }, 50);
+        // 2. Центрируем скролл на картинке (с небольшой задержкой для CSS)
+        setTimeout(() => {
+            // (Ширина картинки - Ширина окна) / 2
+            const centerX = (img.offsetWidth - scrollArea.offsetWidth) / 2;
+            scrollArea.scrollLeft = centerX;
+            scrollArea.scrollTop = 0;
+        }, 50);
+
+    } else {
+        // --- ЗАКРЫВАЕМ ---
+        isActive = false;
+        viewport.classList.remove('is-active');
+
+        // Сбрасываем высоту на "auto", чтобы контейнер обжался вокруг маленькой картинки
+        viewport.style.height = '';
+    }
 }
 
-function closeMap(event) {
-    // Останавливаем всплытие, чтобы клик по крестику не сработал как клик по карте
-    if(event) event.stopPropagation();
-
-    isExpanded = false;
-    viewport.classList.remove('is-active');
-    viewport.style.height = ''; // Сброс высоты
-}
-
-// --- ЛОГИКА ПЕРЕТАСКИВАНИЯ МЫШКОЙ (DRAG) ---
+// --- ЛОГИКА ПЕРЕТАСКИВАНИЯ (DRAG & DROP) ---
 let isDown = false;
-let startX;
-let scrollLeftPos;
-let isDragging = false; // Флаг для отличия клика от драга
+let startX, startY;
+let scrollLeft, scrollTop;
+let isDragging = false; // Флаг: мы тащим или просто кликаем?
 
-scrollArea.addEventListener('mousedown', (e) => {
-    if (!isExpanded) return; // Тянуть можно только раскрытую
+function startDrag(e) {
+    if (!isActive) return; // Тащим только в развернутом виде
+
     isDown = true;
     isDragging = false;
+
+    // Запоминаем стартовые точки
     startX = e.pageX - scrollArea.offsetLeft;
-    scrollLeftPos = scrollArea.scrollLeft;
-});
+    startY = e.pageY - scrollArea.offsetTop;
+    scrollLeft = scrollArea.scrollLeft;
+    scrollTop = scrollArea.scrollTop;
+}
 
-scrollArea.addEventListener('mouseleave', () => {
-    isDown = false;
-    isDragging = false;
-});
+// Слушаем события на всей области скролла
+scrollArea.addEventListener('mouseleave', stopDrag);
+scrollArea.addEventListener('mouseup', stopDrag);
 
-scrollArea.addEventListener('mouseup', () => {
+function stopDrag() {
     isDown = false;
-    // Сбрасываем флаг драга с небольшой задержкой,
-    // чтобы событие onclick успело понять, что это был драг
-    setTimeout(() => { isDragging = false; }, 10);
-});
+    // Сбрасываем флаг "драга" с задержкой, чтобы onclick успел понять, что это было
+    setTimeout(() => { isDragging = false; }, 50);
+}
 
 scrollArea.addEventListener('mousemove', (e) => {
     if (!isDown) return;
 
     e.preventDefault();
     const x = e.pageX - scrollArea.offsetLeft;
-    const walk = (x - startX) * 1.5; // Скорость прокрутки
+    const y = e.pageY - scrollArea.offsetTop;
 
-    // Если сдвинули хотя бы на 5 пикселей, считаем это перетаскиванием
-    if (Math.abs(walk) > 5) {
+    // Насколько сдвинулась мышь
+    const walkX = (x - startX);
+    const walkY = (y - startY);
+
+    // Если сдвинули больше чем на 5px, считаем это драгом (отменяем клик закрытия)
+    if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
         isDragging = true;
-        scrollArea.scrollLeft = scrollLeftPos - walk;
     }
+
+    // Двигаем скролл (обратно движению мыши)
+    scrollArea.scrollLeft = scrollLeft - walkX;
+    scrollArea.scrollTop = scrollTop - walkY;
 });
 
     </script>
