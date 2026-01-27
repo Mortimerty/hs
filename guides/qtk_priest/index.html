@@ -352,27 +352,34 @@
 /* Фон затемнения */
 .hs-lightbox-overlay {
     display: none;
-    position: absolute; /* МЕНЯЕМ fixed на absolute */
+    position: absolute; /* Обязательно absolute */
     left: 0;
     width: 100%;
-    height: 100vh; /* Ограничиваем высоту видимой областью */
-    background: rgba(26, 5, 37, 0.9);
-    backdrop-filter: blur(8px);
+    /* Высота теперь не 100%, а фиксированная вокруг центра картинки */
+    height: 100vh;
+    background: rgba(26, 5, 37, 0.95);
+    backdrop-filter: blur(10px);
     z-index: 9999;
+
+    /* Центрируем содержимое */
     justify-content: center;
     align-items: center;
     cursor: zoom-out;
+
+    /* Важно для анимации появления */
     opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-/* Картинка внутри окна */
+/* Сама картинка внутри */
 .hs-lightbox-content {
     max-width: 90%;
-    max-height: 80vh; /* Оставляем место для подсказки */
+    max-height: 85vh;
     border: 3px solid var(--hs-gold);
-    border-radius: 8px;
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.9);
+
+    /* Убираем лишние скачки при открытии */
     transform: scale(0.8);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -407,7 +414,7 @@
             <div class="content">
 
                 <header class="header-banner">
-                    <h1>Тайны Азерота: Маг</h1>
+                    <h1>Тайны Азерота: Маг v2</h1>
                 </header>
 
                 <div class="meta-bar">
@@ -488,17 +495,20 @@
             const overlay = document.getElementById('hsLightbox');
             const fullImg = document.getElementById('hsLightboxImg');
 
-            // 1. Вычисляем текущую позицию скролла во фрейме
-            const scrollPos = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+            // 1. Находим геометрический центр кликнутой картинки
+            // offsetTop - это расстояние от верха фрейма до картинки
+            // offsetHeight / 2 - это половина высоты картинки
+            const imgCenterY = imgElement.offsetTop + (imgElement.offsetHeight / 2);
 
-            // 2. Перемещаем оверлей точно в зону видимости
-            overlay.style.top = scrollPos + 'px';
+            // 2. Ставим центр оверлея ровно в центр картинки
+            // Сдвигаем оверлей вверх на половину его собственной высоты (50vh)
+            overlay.style.top = (imgCenterY - (window.innerHeight / 2)) + 'px';
 
+            // 3. Загружаем и показываем
             fullImg.src = imgElement.src;
             overlay.classList.add('active');
 
-            // Во фреймах блокировка прокрутки body иногда не срабатывает,
-            // но оставляем для порядка
+            // Блокируем скролл родительской страницы (если есть доступ)
             document.body.style.overflow = 'hidden';
         }
 
