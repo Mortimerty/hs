@@ -400,6 +400,56 @@
     pointer-events: none;
 }
 
+/* --- СТИЛИ ДЛЯ ЭФФЕКТА ЛУПЫ --- */
+
+/* Контейнер теперь якорь для лупы */
+.deck-image-container {
+    position: relative; /* Обязательно! */
+    display: inline-block; /* Чтобы контейнер обжался по размеру картинки */
+    cursor: zoom-in; /* Курсор-лупа */
+    /* Твои старые стили */
+    margin: 25px 0;
+    text-align: center;
+}
+
+/* При удержании меняем курсор */
+.deck-image-container:active {
+    cursor: none; /* Скрываем курсор, чтобы не мешал смотреть через лупу */
+}
+
+/* Сама лупа */
+.hs-magnifier-glass {
+    position: absolute;
+    display: none; /* Скрыта по умолчанию */
+
+    /* Размер линзы */
+    width: 220px;
+    height: 220px;
+
+    /* Круглая форма */
+    border-radius: 50%;
+
+    /* Оформление в стиле Hearthstone */
+    border: 5px solid var(--hs-gold);
+    box-shadow:
+        0 10px 25px rgba(0,0,0,0.6), /* Внешняя тень */
+        inset 0 0 40px rgba(255,255,255,0.3); /* Внутренний блик линзы */
+    background-color: var(--wood-dark); /* Заглушка, пока не загрузился фон */
+    background-repeat: no-repeat;
+
+    /* КРИТИЧЕСКИ ВАЖНО: */
+    pointer-events: none; /* Лупа прозрачна для мыши, чтобы события шли к картинке под ней */
+    z-index: 100;
+
+    /* Чтобы фон не вылезал за круг */
+    overflow: hidden;
+}
+
+/* Класс, который добавляется скриптом при удержании мыши */
+.hs-magnifier-active .hs-magnifier-glass {
+    display: block;
+}
+
     </style>
 </head>
 <body>
@@ -411,7 +461,7 @@
             <div class="content">
 
                 <header class="header-banner">
-                    <h1>Тайны Азерота: Маг v3</h1>
+                    <h1>Тайны Азерота: Маг v4</h1>
                 </header>
 
                 <div class="meta-bar">
@@ -423,9 +473,13 @@
                 <p>Приветствую в таверне! Этот древний свиток раскроет тебе секреты самой непредсказуемой колоды текущей меты. Ключ к успеху кроется в твоем умении использовать <a href="#" class="card-ref">Тайный ход</a> в нужный момент.</p>
 
                 <h2>Состав колоды</h2>
-                <div class="deck-image-container with-shadow">
-                    <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img" onclick="openHSImage(this)">
+                <div id="deckContainer" class="deck-image-container with-shadow">
+                    <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img">
+                    <div class="hs-magnifier-glass"></div>
                 </div>
+                <p style="text-align: center; font-size: 0.9rem; opacity: 0.7; margin-top: -15px;">
+                    <small>Зажмите левую кнопку мыши на картинке, чтобы включить лупу</small>
+                </p>
 
                 <!-- <h2>Got multiple</h2>
                 <div class="deck-stone stone-block">
@@ -487,49 +541,77 @@
     </div>
 
     <script>
-let currentImg = null;
+        (function() {
+            // НАСТРОЙКИ
+            const ZOOM_LEVEL = 3; // Сила увеличения (3x)
 
-function openHSImage(imgElement) {
-    const overlay = document.getElementById('hsLightbox');
-    currentImg = document.getElementById('hsLightboxImg');
+            const container = document.getElementById('deckContainer');
+            const img = container.querySelector('.deck-showcase-img');
+            const glass = container.querySelector('.hs-magnifier-glass');
 
-    // 1. Позиционируем оверлей и картинку над местом клика
-    const rect = imgElement.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const centerY = rect.top + scrollTop + (rect.height / 2);
+            let isMagnifying = false;
 
-    currentImg.src = imgElement.src;
-    currentImg.style.top = centerY + 'px';
-    currentImg.style.left = '50%';
+            // 1. Старт (нажатие кнопки мыши)
+            container.addEventListener('mousedown', function(e) {
+                // Работаем только по левой кнопке (button 0)
+                if (e.button !== 0) return;
 
-    overlay.classList.add('active');
+                e.preventDefault(); // Чтобы не выделялся текст или картинка
+                isMagnifying = true;
+                container.classList.add('hs-magnifier-active');
 
-    // 2. Добавляем слушатель движения мыши
-    overlay.addEventListener('mousemove', handlePan);
-}
+                // Устанавливаем фон лупы (та же картинка)
+                glass.style.backgroundImage = `url('${img.src}')`;
+                // Фон внутри лупы должен быть в N раз больше оригинала
+                glass.style.backgroundSize = `${img.width * ZOOM_LEVEL}px ${img.height * ZOOM_LEVEL}px`;
 
-function handlePan(e) {
-    if (!currentImg) return;
+                moveMagnifier(e); // Сразу позиционируем
+            });
 
-    // Вычисляем положение мыши относительно центра окна (в процентах от -0.5 до 0.5)
-    const mouseX = (e.clientX / window.innerWidth) - 0.5;
-    const mouseY = (e.clientY / window.innerHeight) - 0.5;
+            // 2. Движение
+            container.addEventListener('mousemove', function(e) {
+                if (!isMagnifying) return;
+                moveMagnifier(e);
+            });
 
-    // Настраиваем интенсивность движения (чем больше число, тем сильнее плавает)
-    const moveX = mouseX * 150;
-    const moveY = mouseY * 150;
+            // 3. Стоп (отпускание кнопки или выход курсора за пределы)
+            container.addEventListener('mouseup', stopMagnifying);
+            container.addEventListener('mouseleave', stopMagnifying);
 
-    // Применяем смещение через translate
-    // Сохраняем -50% для центрирования и добавляем пиксели от мыши
-    currentImg.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px)) scale(1)`;
-}
 
-function closeHSImage() {
-    const overlay = document.getElementById('hsLightbox');
-    overlay.classList.remove('active');
-    overlay.removeEventListener('mousemove', handlePan);
-    currentImg = null;
-}
+            // --- ФУНКЦИИ ПОМОЩНИКИ ---
+
+            function stopMagnifying() {
+                isMagnifying = false;
+                container.classList.remove('hs-magnifier-active');
+            }
+
+            function moveMagnifier(e) {
+                // Получаем размеры и позицию картинки на странице
+                const rect = img.getBoundingClientRect();
+
+                // Вычисляем позицию курсора ВНУТРИ картинки (в пикселях от левого верхнего угла)
+                let cursorX = e.clientX - rect.left;
+                let cursorY = e.clientY - rect.top;
+
+                // Радиус линзы (половина ширины)
+                const glassRadius = glass.offsetWidth / 2;
+
+                // --- ДВИГАЕМ САМУ ЛИНЗУ ---
+                // Центр линзы должен быть там, где курсор.
+                // Вычитаем радиус, чтобы позиционировать не левый угол линзы, а её центр.
+                glass.style.left = `${cursorX - glassRadius}px`;
+                glass.style.top = `${cursorY - glassRadius}px`;
+
+                // --- ДВИГАЕМ ФОН ВНУТРИ ЛИНЗЫ ---
+                // Формула: -(позиция_курсора * зум - радиус_линзы)
+                // Это создает обратное движение фона, эффект линзы.
+                const bgPosX = -(cursorX * ZOOM_LEVEL - glassRadius);
+                const bgPosY = -(cursorY * ZOOM_LEVEL - glassRadius);
+
+                glass.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+            }
+        })();
     </script>
 </body>
 </html>
