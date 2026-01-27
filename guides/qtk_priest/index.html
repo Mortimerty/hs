@@ -450,6 +450,100 @@
     display: block;
 }
 
+/* Контейнер картинки */
+.deck-image-container {
+    position: relative;
+    margin: 25px 0;
+
+    /* Красивая рамка контейнера */
+    border: 1px solid rgba(61, 43, 31, 0.2);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05); /* Легкая подложка */
+
+    /* Скрываем всё, что вылезает, пока не кликнули */
+    overflow: hidden;
+
+    /* Плавная анимация высоты при раскрытии */
+    transition: all 0.3s ease;
+    cursor: zoom-in;
+}
+
+/* Сама картинка */
+.deck-showcase-img {
+    display: block;
+    width: 100%;       /* По умолчанию сжата по ширине */
+    height: auto;      /* Высота авто */
+    max-width: 100%;
+    margin: 0 auto;
+    transition: width 0.3s ease; /* Плавное изменение ширины */
+}
+
+/* --- СОСТОЯНИЕ: АКТИВЕН (РАСКРЫТ) --- */
+.deck-image-container.is-expanded {
+    overflow-x: auto; /* Включаем горизонтальную прокрутку */
+    cursor: zoom-out;
+    background: rgba(0, 0, 0, 0.1); /* Чуть темнее фон для акцента */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.1); /* Внутренняя тень */
+
+    /* Для мобильных: инерционная прокрутка (как в нативных приложениях) */
+    -webkit-overflow-scrolling: touch;
+}
+
+.deck-image-container.is-expanded .deck-showcase-img {
+    /* Ключевой момент: заставляем картинку стать большой */
+    width: auto;       /* Отменяем 100% ширины */
+    max-width: none;   /* Убираем ограничение */
+    min-width: 600px;  /* Минимальная ширина, при которой читается текст карт */
+    margin: 0;         /* Убираем центрирование, чтобы скроллить от начала */
+}
+
+/* --- ВИЗУАЛЬНЫЕ ПОДСКАЗКИ --- */
+
+/* Иконка лупы поверх картинки */
+.zoom-hint-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(26, 5, 37, 0.6);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    border: 2px solid var(--hs-gold);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none; /* Пропускаем клик сквозь иконку */
+}
+
+.zoom-hint-icon svg {
+    fill: var(--hs-gold-bright);
+    width: 30px;
+    height: 30px;
+}
+
+/* Показываем иконку при наведении (на десктопе) */
+.deck-image-container:hover .zoom-hint-icon {
+    opacity: 1;
+}
+/* Скрываем иконку, когда уже раскрыли */
+.deck-image-container.is-expanded .zoom-hint-icon {
+    opacity: 0 !important;
+}
+
+/* Текст-подсказка снизу */
+.tap-hint {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--wood-dark);
+    opacity: 0.7;
+    margin-top: 8px;
+    font-style: italic;
+}
+
     </style>
 </head>
 <body>
@@ -461,7 +555,7 @@
             <div class="content">
 
                 <header class="header-banner">
-                    <h1>Тайны Азерота: Маг v4</h1>
+                    <h1>Тайны Азерота: Маг v5</h1>
                 </header>
 
                 <div class="meta-bar">
@@ -473,13 +567,17 @@
                 <p>Приветствую в таверне! Этот древний свиток раскроет тебе секреты самой непредсказуемой колоды текущей меты. Ключ к успеху кроется в твоем умении использовать <a href="#" class="card-ref">Тайный ход</a> в нужный момент.</p>
 
                 <h2>Состав колоды</h2>
-                <div id="deckContainer" class="deck-image-container with-shadow">
+
+                <div class="deck-image-container with-shadow" onclick="toggleDeckZoom(this)">
+
                     <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img">
-                    <div class="hs-magnifier-glass"></div>
+
+                    <div class="zoom-hint-icon">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    </div>
+
                 </div>
-                <p style="text-align: center; font-size: 0.9rem; opacity: 0.7; margin-top: -15px;">
-                    <small>Зажмите левую кнопку мыши на картинке, чтобы включить лупу</small>
-                </p>
+                <div id="zoomText" class="tap-hint">Нажмите на картинку, чтобы рассмотреть детали</div>
 
                 <!-- <h2>Got multiple</h2>
                 <div class="deck-stone stone-block">
@@ -612,6 +710,24 @@
                 glass.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
             }
         })();
+
+        function toggleDeckZoom(container) {
+            // Переключаем класс is-expanded
+            container.classList.toggle('is-expanded');
+
+            const isOpened = container.classList.contains('is-expanded');
+            const hintText = document.getElementById('zoomText');
+
+            if (isOpened) {
+                // Если открыли - меняем подсказку
+                hintText.innerText = "Тяните в стороны для просмотра. Нажмите еще раз, чтобы свернуть.";
+                hintText.style.color = "#8b5cf6"; // Подсветка цветом
+            } else {
+                // Если закрыли
+                hintText.innerText = "Нажмите на картинку, чтобы рассмотреть детали";
+                hintText.style.color = ""; // Сброс цвета
+            }
+        }
     </script>
 </body>
 </html>
