@@ -544,109 +544,112 @@
     font-style: italic;
 }
 
-/* --- КОНТЕЙНЕР --- */
-.deck-expand-wrapper {
+/* --- КОНТЕЙНЕР (ОКНО) --- */
+.deck-peep-viewport {
     position: relative;
     width: 100%;
+    /* Высота определяется автоматически высотой свернутой картинки */
+    height: auto;
+
     margin: 20px 0;
-
-    /* Дефолт: скрываем все, что не влезает по горизонтали */
-    overflow: hidden;
-
-    /* Оформление */
-    background: #150a18;
-    border: 1px solid rgba(61, 43, 31, 0.3);
     border-radius: 8px;
+    border: 1px solid rgba(61, 43, 31, 0.3);
+    overflow: hidden; /* Самое важное: скрываем всё, что вылезет */
 
-    /* Плавное раскрытие вниз через max-height */
-    max-height: 600px; /* Примерная высота свернутой картинки */
-    transition: max-height 0.5s ease-in-out, border-color 0.3s;
+    user-select: none; /* Запрет выделения текста */
+    -webkit-user-select: none;
 
-    cursor: zoom-in;
-    user-select: none;
+    /* Для красоты */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: border-color 0.3s;
 }
 
-/* --- ОБЛАСТЬ ПРОКРУТКИ (ТОЛЬКО ГОРИЗОНТАЛЬНАЯ) --- */
-.deck-scroll-x {
+/* ОБЛАСТЬ СКРОЛЛА */
+.peep-scroll-area {
     width: 100%;
     height: 100%;
 
-    overflow-x: auto; /* Разрешаем скролл влево-вправо */
-    overflow-y: hidden; /* Вертикального скролла нет, контейнер растет */
+    /* Скрываем нативные полосы прокрутки, так как будем двигать JS-ом */
+    overflow: hidden;
 
-    /* Скрываем полосу прокрутки */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    /* Для iOS */
-    -webkit-overflow-scrolling: touch;
+    cursor: zoom-in;
 }
-.deck-scroll-x::-webkit-scrollbar { display: none; }
 
-/* --- КАРТИНКА --- */
-.deck-full-img {
+/* КАРТИНКА */
+.peep-image {
     display: block;
+    width: 100%;      /* По умолчанию: вписана в контейнер */
     height: auto;
 
-    /* В свернутом виде: ширина 100% контейнера */
-    width: 100%;
-    max-width: 100%;
+    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    -webkit-user-drag: none; /* Запрет перетаскивания самого файла */
 
-    transition: min-width 0.3s ease;
-    -webkit-user-drag: none;
+    /* Убираем лишние отступы */
+    margin: 0;
+    padding: 0;
 }
 
-/* --- КНОПКА ЗАКРЫТИЯ --- */
-.close-expand-btn {
+/* КНОПКА ЗАКРЫТИЯ */
+.peep-close-btn {
     position: absolute;
     top: 10px; right: 10px;
-    width: 40px; height: 40px;
+    width: 36px; height: 36px;
     background: #8b0000;
     border: 2px solid #e3c98e;
     border-radius: 50%;
     color: white;
     font-size: 24px;
-    line-height: 38px;
+    line-height: 32px;
     text-align: center;
     cursor: pointer;
 
     opacity: 0;
-    pointer-events: none;
     transform: scale(0.5);
     transition: all 0.3s;
+    pointer-events: none;
     z-index: 20;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-/* --- СОСТОЯНИЕ: РАСКРЫТО (ACTIVE) --- */
-
-.deck-expand-wrapper.is-open {
-    /* Снимаем ограничение высоты - контейнер станет размером с картинку! */
-    max-height: 5000px; /* Запас, чтобы анимация сработала */
-
-    border-color: #e3c98e;
-    cursor: grab; /* Курсор для горизонтального драга */
+/* ПОДСКАЗКА */
+.peep-hint {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    padding: 15px 0 5px;
+    text-align: center;
+    font-size: 0.85rem;
+    pointer-events: none;
+    transition: opacity 0.3s;
 }
 
-.deck-expand-wrapper.is-open:active {
+/* --- СОСТОЯНИЕ: АКТИВЕН (УВЕЛИЧЕН) --- */
+
+.deck-peep-viewport.is-active {
+    border-color: #e3c98e; /* Золотая рамка */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5); /* Внутренняя тень */
+}
+
+.deck-peep-viewport.is-active .peep-scroll-area {
+    cursor: grab; /* Ладошка */
+}
+.deck-peep-viewport.is-active .peep-scroll-area:active {
     cursor: grabbing;
 }
 
-.deck-expand-wrapper.is-open .deck-full-img {
-    /* Заставляем картинку принять нормальный размер */
-    width: auto;
-    max-width: none;
-
-    /* Минимальная ширина, чтобы текст был читаемым */
-    min-width: 650px;
-
-    /* Центрируем, если контейнер шире картинки */
-    margin: 0 auto;
+.deck-peep-viewport.is-active .peep-image {
+    /* РАСКРЫВАЕМ КАРТИНКУ */
+    width: auto;      /* Натуральная ширина */
+    max-width: none;  /* Снимаем ограничения */
+    min-width: 650px; /* Гарантируем читаемость даже на мелких экранах */
 }
 
-/* Показываем кнопку */
-.deck-expand-wrapper.is-open .close-expand-btn {
-    opacity: 1; pointer-events: auto; transform: scale(1);
+.deck-peep-viewport.is-active .peep-close-btn {
+    opacity: 1; transform: scale(1); pointer-events: auto;
+}
+.deck-peep-viewport.is-active .peep-hint {
+    opacity: 0;
 }
     </style>
 </head>
@@ -672,16 +675,19 @@
 
                 <h2>Состав колоды</h2>
 
-                <div class="deck-expand-wrapper" id="deckWrapper">
-                    <div class="close-expand-btn" onclick="toggleDeck(event)">×</div>
+                <div class="deck-peep-viewport" id="peepViewport">
 
-                    <div class="deck-scroll-x" id="deckScrollArea" onclick="toggleDeck(event)" onmousedown="startDragX(event)">
-                        <img src="deck.png" alt="Deck List" class="deck-full-img" id="deckImage">
+                    <div class="peep-close-btn" onclick="togglePeepMode(event)">×</div>
+
+                    <div class="peep-scroll-area" id="peepArea"
+                         onmousedown="startDrag(event)"
+                         ontouchstart="startDrag(event)"
+                         onclick="togglePeepMode(event)">
+
+                        <img src="deck.png" alt="Deck List" class="peep-image" id="peepImg">
                     </div>
 
-                    <div style="position: absolute; bottom: 10px; width: 100%; text-align: center; pointer-events: none; color: rgba(255,255,255,0.6); font-size: 0.8rem;" id="hintLabel">
-                        Нажмите, чтобы развернуть
-                    </div>
+                    <div class="peep-hint" id="peepHint">Нажмите, чтобы исследовать</div>
                 </div>
 
                 <p style="text-align: center; opacity: 0.6; font-size: 0.9rem;">
@@ -820,74 +826,107 @@
             }
         });
 
-        const wrapper = document.getElementById('deckWrapper');
-const scrollArea = document.getElementById('deckScrollArea');
-const img = document.getElementById('deckImage');
-const hintLabel = document.getElementById('hintLabel');
+        const viewport = document.getElementById('peepViewport');
+const scrollArea = document.getElementById('peepArea');
+const img = document.getElementById('peepImg');
 
-let isOpen = false;
+let isActive = false;
 
-function toggleDeck(e) {
+function togglePeepMode(e) {
     if (isDragging) return; // Если тащили - не кликаем
     if (e) e.stopPropagation();
 
-    isOpen = !isOpen;
+    if (!isActive) {
+        // --- ВКЛЮЧАЕМ РЕЖИМ ---
 
-    if (isOpen) {
-        // ОТКРЫТИЕ
-        wrapper.classList.add('is-open');
-        hintLabel.style.opacity = '0';
+        // 1. Фиксируем высоту контейнера!
+        // Это КЛЮЧЕВОЙ момент. Мы берем текущую высоту (пока картинка маленькая)
+        // и жестко задаем её контейнеру. Теперь контейнер не растянется,
+        // когда картинка внутри увеличится.
+        viewport.style.height = viewport.offsetHeight + 'px';
 
-        // Центрируем скролл по горизонтали
+        isActive = true;
+        viewport.classList.add('is-active');
+
+        // 2. Центрируем большую картинку в нашем маленьком окошке
         setTimeout(() => {
-            const centerX = (img.scrollWidth - wrapper.offsetWidth) / 2;
-            if (centerX > 0) {
-                scrollArea.scrollTo({ left: centerX, behavior: 'smooth' });
-            }
-        }, 100);
+            const centerX = (img.offsetWidth - viewport.offsetWidth) / 2;
+            const centerY = (img.offsetHeight - viewport.offsetHeight) / 2;
+
+            scrollArea.scrollLeft = Math.max(0, centerX);
+            scrollArea.scrollTop = Math.max(0, centerY);
+        }, 50);
 
     } else {
-        // ЗАКРЫТИЕ
-        wrapper.classList.remove('is-open');
-        hintLabel.style.opacity = '1';
+        // --- ВЫКЛЮЧАЕМ РЕЖИМ ---
+        isActive = false;
+        viewport.classList.remove('is-active');
+
+        // Сбрасываем жесткую высоту, возвращаем контроль потоку документа
+        // (чтобы при ресайзе окна браузера адаптивность работала)
+        viewport.style.height = '';
     }
 }
 
-// --- ГОРИЗОНТАЛЬНЫЙ ДРАГ (ТОЛЬКО ОСЬ X) ---
+// --- ЛОГИКА ПЕРЕТАСКИВАНИЯ (X и Y) ---
 let isDown = false;
-let startX;
-let scrollLeft;
+let startX, startY;
+let scrollLeftPos, scrollTopPos;
 let isDragging = false;
 
-function startDragX(e) {
-    if (!isOpen) return; // Тащим только если открыто
+function startDrag(e) {
+    if (!isActive) return;
 
     isDown = true;
     isDragging = false;
-    startX = e.pageX - scrollArea.offsetLeft;
-    scrollLeft = scrollArea.scrollLeft;
+
+    // Поддержка и мыши, и тача
+    const pageX = e.pageX || e.touches[0].pageX;
+    const pageY = e.pageY || e.touches[0].pageY;
+
+    startX = pageX - viewport.offsetLeft; // Считаем от вьюпорта, т.к. scrollArea overflow hidden
+    startY = pageY - viewport.offsetTop;
+
+    scrollLeftPos = scrollArea.scrollLeft;
+    scrollTopPos = scrollArea.scrollTop;
 }
 
-// Останавливаем драг, если курсор ушел или отпустили
-scrollArea.addEventListener('mouseleave', () => { isDown = false; });
-scrollArea.addEventListener('mouseup', () => {
-    isDown = false;
-    setTimeout(() => { isDragging = false; }, 10);
-});
+// Слушаем события на всем документе, чтобы драг не срывался, если увести мышь за край
+document.addEventListener('mouseup', stopDrag);
+document.addEventListener('touchend', stopDrag);
 
-scrollArea.addEventListener('mousemove', (e) => {
+function stopDrag() {
+    isDown = false;
+    setTimeout(() => { isDragging = false; }, 50);
+}
+
+// Движение мыши/пальца внутри области
+scrollArea.addEventListener('mousemove', moveDrag);
+scrollArea.addEventListener('touchmove', moveDrag);
+
+function moveDrag(e) {
     if (!isDown) return;
 
-    e.preventDefault();
-    const x = e.pageX - scrollArea.offsetLeft;
-    const walk = (x - startX) * 1.5; // Скорость прокрутки
+    // Предотвращаем скролл самой страницы на мобильных
+    if(e.cancelable) e.preventDefault();
 
-    // Если сдвинули заметно - считаем драгом
-    if (Math.abs(walk) > 5) {
+    const pageX = e.pageX || e.touches[0].pageX;
+    const pageY = e.pageY || e.touches[0].pageY;
+
+    const x = pageX - viewport.offsetLeft;
+    const y = pageY - viewport.offsetTop;
+
+    const walkX = (x - startX); // 1:1 движение
+    const walkY = (y - startY);
+
+    // Детектор драга
+    if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
         isDragging = true;
-        scrollArea.scrollLeft = scrollLeft - walk;
     }
-});
+
+    scrollArea.scrollLeft = scrollLeftPos - walkX;
+    scrollArea.scrollTop = scrollTopPos - walkY;
+}
 
     </script>
 </body>
