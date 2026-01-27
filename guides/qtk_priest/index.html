@@ -544,6 +544,53 @@
     font-style: italic;
 }
 
+/* Контейнер */
+.deck-image-container {
+    position: relative;
+    display: inline-block;
+    cursor: zoom-in;
+    margin: 25px 0;
+    text-align: center;
+
+    /* ВАЖНО ДЛЯ МОБИЛЬНЫХ:
+       Запрещаем браузеру обрабатывать жесты (скролл, зум страницы) внутри этого блока,
+       чтобы мы могли управлять лупой пальцем без помех. */
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent; /* Убираем синюю подсветку при клике на Android/iOS */
+}
+
+/* При удержании */
+.deck-image-container:active,
+.deck-image-container.hs-magnifier-active {
+    cursor: none;
+}
+
+/* Лупа */
+.hs-magnifier-glass {
+    position: absolute;
+    display: none;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+
+    /* Стилистика */
+    border: 4px solid var(--hs-gold);
+    box-shadow:
+        0 10px 25px rgba(0,0,0,0.6),
+        inset 0 0 40px rgba(255,255,255,0.3);
+
+    background-color: #150a18; /* Темный фон, пока грузится HD картинка */
+    background-repeat: no-repeat;
+
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Показ лупы */
+.hs-magnifier-active .hs-magnifier-glass {
+    display: block;
+}
+
 /* --- КОНТЕЙНЕР (ОКНО) --- */
 .deck-peep-viewport {
     position: relative;
@@ -675,23 +722,17 @@
 
                 <h2>Состав колоды</h2>
 
-                <div class="deck-peep-viewport" id="peepViewport">
+                <div id="deckContainer" class="deck-image-container with-shadow">
+                    <img src="deck.png"
+                         data-zoom-src="deck.png"
+                         alt="Hearthstone Deck Showcase"
+                         class="deck-showcase-img">
 
-                    <div class="peep-close-btn" onclick="togglePeepMode(event)">×</div>
-
-                    <div class="peep-scroll-area" id="peepArea"
-                         onmousedown="startDrag(event)"
-                         ontouchstart="startDrag(event)"
-                         onclick="togglePeepMode(event)">
-
-                        <img src="deck.png" alt="Deck List" class="peep-image" id="peepImg">
-                    </div>
-
-                    <div class="peep-hint" id="peepHint">Нажмите, чтобы исследовать</div>
+                    <div class="hs-magnifier-glass"></div>
                 </div>
 
-                <p style="text-align: center; opacity: 0.6; font-size: 0.9rem;">
-                    <small>Нажмите на картинку для детального просмотра</small>
+                <p style="text-align: center; font-size: 0.9rem; opacity: 0.7; margin-top: -15px;">
+                    <small>Нажмите или коснитесь картинки для увеличения</small>
                 </p>
 
                 <!-- <h2>Got multiple</h2>
@@ -754,180 +795,111 @@
     </div>
 
     <script>
-        (function() {
-            // НАСТРОЙКИ
-            const ZOOM_LEVEL = 3; // Сила увеличения (3x)
+    (function() {
+        const ZOOM_LEVEL = 2.5; // Уровень увеличения
 
-            const container = document.getElementById('deckContainer');
-            const img = container.querySelector('.deck-showcase-img');
-            const glass = container.querySelector('.hs-magnifier-glass');
+        const container = document.getElementById('deckContainer');
+        const img = container.querySelector('.deck-showcase-img');
+        const glass = container.querySelector('.hs-magnifier-glass');
 
-            let isMagnifying = false;
+        // Получаем ссылку на HD картинку или берем обычную, если HD нет
+        const zoomImageSrc = img.getAttribute('data-zoom-src') || img.src;
 
-            // 1. Старт (нажатие кнопки мыши)
-            container.addEventListener('mousedown', function(e) {
-                // Работаем только по левой кнопке (button 0)
-                if (e.button !== 0) return;
+        // --- УНИВЕРСАЛЬНЫЕ ОБРАБОТЧИКИ ---
 
-                e.preventDefault(); // Чтобы не выделялся текст или картинка
-                isMagnifying = true;
-                container.classList.add('hs-magnifier-active');
+        // 1. СТАРТ (Нажатие или касание)
+        const startMagnifier = (e) => {
+            // Если это мышь, но не левая кнопка - выход
+            if (e.type === 'mousedown' && e.button !== 0) return;
 
-                // Устанавливаем фон лупы (та же картинка)
-                glass.style.backgroundImage = `url('${img.src}')`;
-                // Фон внутри лупы должен быть в N раз больше оригинала
-                glass.style.backgroundSize = `${img.width * ZOOM_LEVEL}px ${img.height * ZOOM_LEVEL}px`;
+            e.preventDefault(); // Блокируем скролл страницы и выделение
 
-                moveMagnifier(e); // Сразу позиционируем
-            });
+            container.classList.add('hs-magnifier-active');
 
-            // 2. Движение
-            container.addEventListener('mousemove', function(e) {
-                if (!isMagnifying) return;
-                moveMagnifier(e);
-            });
+            // Ставим HD картинку на фон
+            glass.style.backgroundImage = `url('${zoomImageSrc}')`;
 
-            // 3. Стоп (отпускание кнопки или выход курсора за пределы)
-            container.addEventListener('mouseup', stopMagnifying);
-            container.addEventListener('mouseleave', stopMagnifying);
+            // Расчет размеров фона:
+            // Мы берем ТЕКУЩИЙ видимый размер картинки (img.width) и умножаем на зум.
+            // Браузер сам отмасштабирует HD картинку под этот размер.
+            glass.style.backgroundSize = `${img.width * ZOOM_LEVEL}px ${img.height * ZOOM_LEVEL}px`;
 
+            moveMagnifier(e);
+        };
 
-            // --- ФУНКЦИИ ПОМОЩНИКИ ---
+        // 2. ДВИЖЕНИЕ
+        const moveMagnifier = (e) => {
+            // Для touch событий координаты лежат в массиве touches
+            // Для mouse событий - прямо в объекте события
+            let clientX, clientY;
 
-            function stopMagnifying() {
-                isMagnifying = false;
-                container.classList.remove('hs-magnifier-active');
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
             }
 
-            function moveMagnifier(e) {
-                // Получаем размеры и позицию картинки на странице
-                const rect = img.getBoundingClientRect();
+            // Математика позиционирования
+            const rect = img.getBoundingClientRect();
 
-                // Вычисляем позицию курсора ВНУТРИ картинки (в пикселях от левого верхнего угла)
-                let cursorX = e.clientX - rect.left;
-                let cursorY = e.clientY - rect.top;
+            // Координаты курсора внутри картинки
+            let x = clientX - rect.left;
+            let y = clientY - rect.top;
 
-                // Радиус линзы (половина ширины)
-                const glassRadius = glass.offsetWidth / 2;
+            // Учитываем прокрутку страницы (на всякий случай, если rect кривой)
+            // Но обычно getBoundingClientRect() + clientX работают корректно относительно вьюпорта.
 
-                // --- ДВИГАЕМ САМУ ЛИНЗУ ---
-                // Центр линзы должен быть там, где курсор.
-                // Вычитаем радиус, чтобы позиционировать не левый угол линзы, а её центр.
-                glass.style.left = `${cursorX - glassRadius}px`;
-                glass.style.top = `${cursorY - glassRadius}px`;
+            // Проверка границ: чтобы лупа не "глючила", если палец ушел за край
+            if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+                 // Опционально: можно скрывать лупу здесь, но mouseleave надежнее
+                 return;
+            }
 
-                // --- ДВИГАЕМ ФОН ВНУТРИ ЛИНЗЫ ---
-                // Формула: -(позиция_курсора * зум - радиус_линзы)
-                // Это создает обратное движение фона, эффект линзы.
-                const bgPosX = -(cursorX * ZOOM_LEVEL - glassRadius);
-                const bgPosY = -(cursorY * ZOOM_LEVEL - glassRadius);
+            // Центрируем лупу относительно пальца
+            const glassRadius = glass.offsetWidth / 2;
+            glass.style.left = `${x - glassRadius}px`;
+            glass.style.top = `${y - glassRadius}px`;
 
-                glass.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+            // Сдвигаем фон (эффект линзы)
+            const bgPosX = -(x * ZOOM_LEVEL - glassRadius);
+            const bgPosY = -(y * ZOOM_LEVEL - glassRadius);
+
+            glass.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+        };
+
+        // 3. КОНЕЦ
+        const stopMagnifier = () => {
+            container.classList.remove('hs-magnifier-active');
+        };
+
+        // --- ПРИВЯЗКА СОБЫТИЙ ---
+
+        // Мышь
+        container.addEventListener('mousedown', startMagnifier);
+        container.addEventListener('mousemove', (e) => {
+            // Двигаем лупу, только если класс активен
+            if (container.classList.contains('hs-magnifier-active')) {
+                moveMagnifier(e);
             }
         });
+        container.addEventListener('mouseup', stopMagnifier);
+        container.addEventListener('mouseleave', stopMagnifier);
 
-        const viewport = document.getElementById('peepViewport');
-const scrollArea = document.getElementById('peepArea');
-const img = document.getElementById('peepImg');
+        // Тачскрин (Смартфоны)
+        // passive: false критически важно, чтобы работал e.preventDefault()
+        container.addEventListener('touchstart', startMagnifier, { passive: false });
+        container.addEventListener('touchmove', (e) => {
+             if (container.classList.contains('hs-magnifier-active')) {
+                e.preventDefault(); // Запрещаем скролл страницы пока водим пальцем по карте
+                moveMagnifier(e);
+            }
+        }, { passive: false });
+        container.addEventListener('touchend', stopMagnifier);
+        container.addEventListener('touchcancel', stopMagnifier);
 
-let isActive = false;
-
-function togglePeepMode(e) {
-    if (isDragging) return; // Если тащили - не кликаем
-    if (e) e.stopPropagation();
-
-    if (!isActive) {
-        // --- ВКЛЮЧАЕМ РЕЖИМ ---
-
-        // 1. Фиксируем высоту контейнера!
-        // Это КЛЮЧЕВОЙ момент. Мы берем текущую высоту (пока картинка маленькая)
-        // и жестко задаем её контейнеру. Теперь контейнер не растянется,
-        // когда картинка внутри увеличится.
-        viewport.style.height = viewport.offsetHeight + 'px';
-
-        isActive = true;
-        viewport.classList.add('is-active');
-
-        // 2. Центрируем большую картинку в нашем маленьком окошке
-        setTimeout(() => {
-            const centerX = (img.offsetWidth - viewport.offsetWidth) / 2;
-            const centerY = (img.offsetHeight - viewport.offsetHeight) / 2;
-
-            scrollArea.scrollLeft = Math.max(0, centerX);
-            scrollArea.scrollTop = Math.max(0, centerY);
-        }, 50);
-
-    } else {
-        // --- ВЫКЛЮЧАЕМ РЕЖИМ ---
-        isActive = false;
-        viewport.classList.remove('is-active');
-
-        // Сбрасываем жесткую высоту, возвращаем контроль потоку документа
-        // (чтобы при ресайзе окна браузера адаптивность работала)
-        viewport.style.height = '';
-    }
-}
-
-// --- ЛОГИКА ПЕРЕТАСКИВАНИЯ (X и Y) ---
-let isDown = false;
-let startX, startY;
-let scrollLeftPos, scrollTopPos;
-let isDragging = false;
-
-function startDrag(e) {
-    if (!isActive) return;
-
-    isDown = true;
-    isDragging = false;
-
-    // Поддержка и мыши, и тача
-    const pageX = e.pageX || e.touches[0].pageX;
-    const pageY = e.pageY || e.touches[0].pageY;
-
-    startX = pageX - viewport.offsetLeft; // Считаем от вьюпорта, т.к. scrollArea overflow hidden
-    startY = pageY - viewport.offsetTop;
-
-    scrollLeftPos = scrollArea.scrollLeft;
-    scrollTopPos = scrollArea.scrollTop;
-}
-
-// Слушаем события на всем документе, чтобы драг не срывался, если увести мышь за край
-document.addEventListener('mouseup', stopDrag);
-document.addEventListener('touchend', stopDrag);
-
-function stopDrag() {
-    isDown = false;
-    setTimeout(() => { isDragging = false; }, 50);
-}
-
-// Движение мыши/пальца внутри области
-scrollArea.addEventListener('mousemove', moveDrag);
-scrollArea.addEventListener('touchmove', moveDrag);
-
-function moveDrag(e) {
-    if (!isDown) return;
-
-    // Предотвращаем скролл самой страницы на мобильных
-    if(e.cancelable) e.preventDefault();
-
-    const pageX = e.pageX || e.touches[0].pageX;
-    const pageY = e.pageY || e.touches[0].pageY;
-
-    const x = pageX - viewport.offsetLeft;
-    const y = pageY - viewport.offsetTop;
-
-    const walkX = (x - startX); // 1:1 движение
-    const walkY = (y - startY);
-
-    // Детектор драга
-    if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
-        isDragging = true;
-    }
-
-    scrollArea.scrollLeft = scrollLeftPos - walkX;
-    scrollArea.scrollTop = scrollTopPos - walkY;
-}
-
-    </script>
+    })();
+</script>
 </body>
 </html>
