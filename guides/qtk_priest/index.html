@@ -355,45 +355,39 @@
     position: absolute;
     top: 0; left: 0;
     width: 100%;
-    height: 100%; /* На всю высоту длинного фрейма */
-    background: rgba(20, 5, 30, 0.9);
-    backdrop-filter: blur(10px);
-    z-index: 9999;
-
-    /* Центрируем содержимое */
-    justify-content: center;
-    align-items: center;
-    cursor: zoom-out;
-
-    /* Важно для анимации появления */
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    height: 100%;
+    background: rgba(15, 5, 25, 0.92);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
+    overflow: hidden; /* Чтобы картинка не вылезала за края при движении */
+    cursor: url('https://wow.zamimg.com/images/wow/icons/small/inventoryslot_mainhand.jpg'), auto; /* Кастомный курсор для атмосферы */
 }
 
-/* Картинка, которая будет летать за скроллом */
-.hs-lightbox-content {
-    position: absolute; /* Важно! */
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.8); /* Центрируем по точке */
-    max-width: 95%;
-    max-height: 90vh;
+/* Большая картинка */
+.hs-panning-content {
+    position: absolute;
+    pointer-events: none; /* Картинка не мешает ловить движения мышки оверлеем */
+    max-width: none; /* Разрешаем ей быть больше экрана */
+    width: auto;
+    height: 110vh; /* Делаем чуть больше экрана для эффекта движения */
     border: 3px solid var(--hs-gold);
-    border-radius: 12px;
-    box-shadow: 0 0 60px rgba(0,0,0,0.9);
+    border-radius: 15px;
+    box-shadow: 0 0 80px rgba(0,0,0,1);
 
-    /* Убираем лишние скачки при открытии */
-    transform: scale(0.8);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Начальная точка трансформации — центр */
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s ease;
 }
 
-/* Когда окно открыто */
-.hs-lightbox-overlay.active {
-    display: block; /* Вместо flex */
+.hs-panning-overlay.active {
+    display: block;
     opacity: 1;
 }
 
-.hs-lightbox-overlay.active .hs-lightbox-content {
+.hs-panning-overlay.active .hs-panning-content {
     transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
 }
 
 /* Подсказка снизу */
@@ -406,18 +400,6 @@
     pointer-events: none;
 }
 
-
-/* Стили, когда картинка "на весь экран" */
-.deck-showcase-img:fullscreen {
-    object-fit: contain; /* Картинка не растягивается, а вписывается */
-    background-color: #1a0525; /* Твой фирменный темно-фиолетовый фон */
-    padding: 20px;
-}
-
-/* Для старых браузеров (префиксы) */
-.deck-showcase-img:-webkit-full-screen {
-    background-color: #1a0525;
-}
     </style>
 </head>
 <body>
@@ -429,7 +411,7 @@
             <div class="content">
 
                 <header class="header-banner">
-                    <h1>Тайны Азерота: Маг v2</h1>
+                    <h1>Тайны Азерота: Маг v3</h1>
                 </header>
 
                 <div class="meta-bar">
@@ -442,8 +424,7 @@
 
                 <h2>Состав колоды</h2>
                 <div class="deck-image-container with-shadow">
-                    <!-- <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img" onclick="openHSImage(this)"> -->
-                    <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img" onclick="toggleFullscreen(this)">
+                    <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img" onclick="openHSImage(this)">
                 </div>
 
                 <!-- <h2>Got multiple</h2>
@@ -501,57 +482,54 @@
 
         <div class="scroll-bottom"></div>
     </div>
-    <div id="hsLightbox" class="hs-lightbox-overlay" onclick="closeHSImage()">
-        <img id="hsLightboxImg" src="" alt="Deck View" class="hs-lightbox-content">
-        <div class="hs-lightbox-hint">Нажмите в любое место, чтобы закрыть</div>
+    <div id="hsLightbox" class="hs-panning-overlay" onclick="closeHSImage()">
+        <img id="hsLightboxImg" src="" alt="Deck View" class="hs-panning-content">
     </div>
 
     <script>
-        function openHSImage(imgElement) {
-            const overlay = document.getElementById('hsLightbox');
-            const fullImg = document.getElementById('hsLightboxImg');
+let currentImg = null;
 
-            // 1. Получаем координаты кликнутой картинки относительно окна
-            const rect = imgElement.getBoundingClientRect();
+function openHSImage(imgElement) {
+    const overlay = document.getElementById('hsLightbox');
+    currentImg = document.getElementById('hsLightboxImg');
 
-            // 2. Учитываем прокрутку внутри фрейма
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    // 1. Позиционируем оверлей и картинку над местом клика
+    const rect = imgElement.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const centerY = rect.top + scrollTop + (rect.height / 2);
 
-            // 3. Находим центр картинки (координата Y)
-            // Это позиция от начала фрейма + середина картинки
-            const centerY = rect.top + scrollTop + (rect.height / 2);
+    currentImg.src = imgElement.src;
+    currentImg.style.top = centerY + 'px';
+    currentImg.style.left = '50%';
 
-            // 4. Ставим большую картинку ровно по этому центру
-            fullImg.style.top = centerY + 'px';
+    overlay.classList.add('active');
 
-            fullImg.src = imgElement.src;
-            overlay.classList.add('active');
-        }
+    // 2. Добавляем слушатель движения мыши
+    overlay.addEventListener('mousemove', handlePan);
+}
 
-        function closeHSImage() {
-            const overlay = document.getElementById('hsLightbox');
-            overlay.classList.remove('active');
-        }
+function handlePan(e) {
+    if (!currentImg) return;
 
-        function toggleFullscreen(imgElement) {
-            if (!document.fullscreenElement &&    // если сейчас НЕ полноэкранный режим
-                !document.mozFullScreenElement && !document.webkitFullscreenElement) {
+    // Вычисляем положение мыши относительно центра окна (в процентах от -0.5 до 0.5)
+    const mouseX = (e.clientX / window.innerWidth) - 0.5;
+    const mouseY = (e.clientY / window.innerHeight) - 0.5;
 
-                // Запрос на вход в полноэкранный режим
-                if (imgElement.requestFullscreen) {
-                    imgElement.requestFullscreen();
-                } else if (imgElement.mozRequestFullScreen) { // Firefox
-                    imgElement.mozRequestFullScreen();
-                } else if (imgElement.webkitRequestFullscreen) { // Chrome, Safari, Opera
-                    imgElement.webkitRequestFullscreen();
-                }
-            } else {
-                // Выход из полноэкранного режима
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
+    // Настраиваем интенсивность движения (чем больше число, тем сильнее плавает)
+    const moveX = mouseX * 150;
+    const moveY = mouseY * 150;
+
+    // Применяем смещение через translate
+    // Сохраняем -50% для центрирования и добавляем пиксели от мыши
+    currentImg.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px)) scale(1)`;
+}
+
+function closeHSImage() {
+    const overlay = document.getElementById('hsLightbox');
+    overlay.classList.remove('active');
+    overlay.removeEventListener('mousemove', handlePan);
+    currentImg = null;
+}
     </script>
 </body>
 </html>
