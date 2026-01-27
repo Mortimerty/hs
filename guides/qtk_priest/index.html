@@ -318,6 +318,83 @@
             /* Легкое скругление углов, если у картинки есть рамка */
             border-radius: 4px;
         }
+
+        .with-shadow {
+            /* 0 - смещение по горизонтали (центр)
+               15px - смещение вниз (дает объем)
+               20px - размытие (делает тень мягкой)
+               rgba(43, 29, 14, 0.5) - темно-коричневый цвет с прозрачностью */
+            filter: drop-shadow(0 15px 20px rgba(43, 29, 14, 0.5)) !important;
+
+            /* Плавный переход, если захочешь добавить анимацию */
+            transition: filter 0.3s ease;
+        }
+
+        /* Бонус: эффект при наведении */
+        .with-shadow:hover {
+            /* Чуть приподнимаем картинку (увеличиваем тень) */
+            filter: drop-shadow(0 20px 30px rgba(43, 29, 14, 0.6)) !important;
+        }
+
+/* --- МОДУЛЬ LIGHTBOX --- */
+
+/* Настройки основной картинки в тексте */
+.deck-showcase-img {
+    cursor: zoom-in;
+    transition: transform 0.2s ease, filter 0.3s ease;
+}
+
+.deck-showcase-img:hover {
+    transform: scale(1.01);
+    filter: brightness(1.1) drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+}
+
+/* Фон затемнения */
+.hs-lightbox-overlay {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(26, 5, 37, 0.85); /* Глубокий фиолетовый */
+    backdrop-filter: blur(8px); /* Магическое размытие */
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Картинка внутри окна */
+.hs-lightbox-content {
+    max-width: 90%;
+    max-height: 85vh;
+    border: 3px solid var(--hs-gold);
+    border-radius: 8px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    transform: scale(0.8);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Когда окно открыто */
+.hs-lightbox-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.hs-lightbox-overlay.active .hs-lightbox-content {
+    transform: scale(1);
+}
+
+/* Подсказка снизу */
+.hs-lightbox-hint {
+    position: absolute;
+    bottom: 30px;
+    color: var(--hs-gold-bright);
+    font-family: 'Belwe Bold', serif;
+    text-shadow: 0 2px 4px black;
+    pointer-events: none;
+}
     </style>
 </head>
 <body>
@@ -341,8 +418,8 @@
                 <p>Приветствую в таверне! Этот древний свиток раскроет тебе секреты самой непредсказуемой колоды текущей меты. Ключ к успеху кроется в твоем умении использовать <a href="#" class="card-ref">Тайный ход</a> в нужный момент.</p>
 
                 <h2>Состав колоды</h2>
-                <div class="deck-image-container">
-                    <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img">
+                <div class="deck-image-container with-shadow">
+                    <img src="deck.png" alt="Hearthstone Deck Showcase" class="deck-showcase-img" onclick="openHSImage(this)">
                 </div>
 
                 <!-- <h2>Got multiple</h2>
@@ -400,6 +477,26 @@
 
         <div class="scroll-bottom"></div>
     </div>
+    <div id="hsLightbox" class="hs-lightbox-overlay" onclick="closeHSImage()">
+        <img id="hsLightboxImg" src="" alt="Deck View" class="hs-lightbox-content">
+        <div class="hs-lightbox-hint">Нажмите в любое место, чтобы закрыть</div>
+    </div>
 
+    <script>
+        function openHSImage(imgElement) {
+            const overlay = document.getElementById('hsLightbox');
+            const fullImg = document.getElementById('hsLightboxImg');
+
+            fullImg.src = imgElement.src;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Запрет прокрутки сайта
+        }
+
+        function closeHSImage() {
+            const overlay = document.getElementById('hsLightbox');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto'; // Возврат прокрутки
+        }
+    </script>
 </body>
 </html>
