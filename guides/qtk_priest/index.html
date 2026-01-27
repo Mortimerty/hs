@@ -591,113 +591,6 @@
     display: block;
 }
 
-/* --- КОНТЕЙНЕР (ОКНО) --- */
-.deck-peep-viewport {
-    position: relative;
-    width: 100%;
-    /* Высота определяется автоматически высотой свернутой картинки */
-    height: auto;
-
-    margin: 20px 0;
-    border-radius: 8px;
-    border: 1px solid rgba(61, 43, 31, 0.3);
-    overflow: hidden; /* Самое важное: скрываем всё, что вылезет */
-
-    user-select: none; /* Запрет выделения текста */
-    -webkit-user-select: none;
-
-    /* Для красоты */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: border-color 0.3s;
-}
-
-/* ОБЛАСТЬ СКРОЛЛА */
-.peep-scroll-area {
-    width: 100%;
-    height: 100%;
-
-    /* Скрываем нативные полосы прокрутки, так как будем двигать JS-ом */
-    overflow: hidden;
-
-    cursor: zoom-in;
-}
-
-/* КАРТИНКА */
-.peep-image {
-    display: block;
-    width: 100%;      /* По умолчанию: вписана в контейнер */
-    height: auto;
-
-    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    -webkit-user-drag: none; /* Запрет перетаскивания самого файла */
-
-    /* Убираем лишние отступы */
-    margin: 0;
-    padding: 0;
-}
-
-/* КНОПКА ЗАКРЫТИЯ */
-.peep-close-btn {
-    position: absolute;
-    top: 10px; right: 10px;
-    width: 36px; height: 36px;
-    background: #8b0000;
-    border: 2px solid #e3c98e;
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    line-height: 32px;
-    text-align: center;
-    cursor: pointer;
-
-    opacity: 0;
-    transform: scale(0.5);
-    transition: all 0.3s;
-    pointer-events: none;
-    z-index: 20;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-}
-
-/* ПОДСКАЗКА */
-.peep-hint {
-    position: absolute;
-    bottom: 0; left: 0; width: 100%;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-    color: white;
-    padding: 15px 0 5px;
-    text-align: center;
-    font-size: 0.85rem;
-    pointer-events: none;
-    transition: opacity 0.3s;
-}
-
-/* --- СОСТОЯНИЕ: АКТИВЕН (УВЕЛИЧЕН) --- */
-
-.deck-peep-viewport.is-active {
-    border-color: #e3c98e; /* Золотая рамка */
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5); /* Внутренняя тень */
-}
-
-.deck-peep-viewport.is-active .peep-scroll-area {
-    cursor: grab; /* Ладошка */
-}
-.deck-peep-viewport.is-active .peep-scroll-area:active {
-    cursor: grabbing;
-}
-
-.deck-peep-viewport.is-active .peep-image {
-    /* РАСКРЫВАЕМ КАРТИНКУ */
-    width: auto;      /* Натуральная ширина */
-    max-width: none;  /* Снимаем ограничения */
-    min-width: 650px; /* Гарантируем читаемость даже на мелких экранах */
-}
-
-.deck-peep-viewport.is-active .peep-close-btn {
-    opacity: 1; transform: scale(1); pointer-events: auto;
-}
-.deck-peep-viewport.is-active .peep-hint {
-    opacity: 0;
-}
     </style>
 </head>
 <body>
@@ -796,7 +689,7 @@
 
     <script>
     (function() {
-        const ZOOM_LEVEL = 2.5; // Уровень увеличения
+        const ZOOM_LEVEL = 5; // Уровень увеличения
 
         const container = document.getElementById('deckContainer');
         const img = container.querySelector('.deck-showcase-img');
