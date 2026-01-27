@@ -336,281 +336,48 @@
             filter: drop-shadow(0 20px 30px rgba(43, 29, 14, 0.6)) !important;
         }
 
-/* --- МОДУЛЬ LIGHTBOX --- */
-
-/* Настройки основной картинки в тексте */
-.deck-showcase-img {
-    cursor: zoom-in;
-    transition: transform 0.2s ease, filter 0.3s ease;
+        .zoom-trigger {
+  width: 100%;
+  max-width: 600px;
+  cursor: zoom-in;
 }
 
-.deck-showcase-img:hover {
-    transform: scale(1.01);
-    filter: brightness(1.1) drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+/* Стили самого диалога */
+#zoomDialog {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
-/* Фон затемнения */
-.hs-lightbox-overlay {
-    display: none;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 5, 25, 0.92);
-    backdrop-filter: blur(12px);
-    z-index: 10000;
-    overflow: hidden; /* Чтобы картинка не вылезала за края при движении */
-    cursor: url('https://wow.zamimg.com/images/wow/icons/small/inventoryslot_mainhand.jpg'), auto; /* Кастомный курсор для атмосферы */
+#zoomDialog::backdrop {
+  background: rgba(0, 0, 0, 0.8); /* Затемнение фона вокруг iframe */
 }
 
-/* Большая картинка */
-.hs-panning-content {
-    position: absolute;
-    pointer-events: none; /* Картинка не мешает ловить движения мышки оверлеем */
-    max-width: none; /* Разрешаем ей быть больше экрана */
-    width: auto;
-    height: 110vh; /* Делаем чуть больше экрана для эффекта движения */
-    border: 3px solid var(--hs-gold);
-    border-radius: 15px;
-    box-shadow: 0 0 80px rgba(0,0,0,1);
-
-    /* Начальная точка трансформации — центр */
-    transform: translate(-50%, -50%) scale(0.5);
-    opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s ease;
+.zoom-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.hs-panning-overlay.active {
-    display: block;
-    opacity: 1;
+#zoomedImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.1s ease-out; /* Для плавности зума */
+  cursor: zoom-out;
 }
 
-.hs-panning-overlay.active .hs-panning-content {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-}
-
-/* Подсказка снизу */
-.hs-lightbox-hint {
-    position: absolute;
-    bottom: 30px;
-    color: var(--hs-gold-bright);
-    font-family: 'Belwe Bold', serif;
-    text-shadow: 0 2px 4px black;
-    pointer-events: none;
-}
-
-/* --- СТИЛИ ДЛЯ ЭФФЕКТА ЛУПЫ --- */
-
-/* Контейнер теперь якорь для лупы */
-.deck-image-container {
-    position: relative; /* Обязательно! */
-    display: inline-block; /* Чтобы контейнер обжался по размеру картинки */
-    cursor: zoom-in; /* Курсор-лупа */
-    /* Твои старые стили */
-    margin: 25px 0;
-    text-align: center;
-}
-
-/* При удержании меняем курсор */
-.deck-image-container:active {
-    cursor: none; /* Скрываем курсор, чтобы не мешал смотреть через лупу */
-}
-
-/* Сама лупа */
-.hs-magnifier-glass {
-    position: absolute;
-    display: none; /* Скрыта по умолчанию */
-
-    /* Размер линзы */
-    width: 220px;
-    height: 220px;
-
-    /* Круглая форма */
-    border-radius: 50%;
-
-    /* Оформление в стиле Hearthstone */
-    border: 5px solid var(--hs-gold);
-    box-shadow:
-        0 10px 25px rgba(0,0,0,0.6), /* Внешняя тень */
-        inset 0 0 40px rgba(255,255,255,0.3); /* Внутренний блик линзы */
-    background-color: var(--wood-dark); /* Заглушка, пока не загрузился фон */
-    background-repeat: no-repeat;
-
-    /* КРИТИЧЕСКИ ВАЖНО: */
-    pointer-events: none; /* Лупа прозрачна для мыши, чтобы события шли к картинке под ней */
-    z-index: 100;
-
-    /* Чтобы фон не вылезал за круг */
-    overflow: hidden;
-}
-
-/* Класс, который добавляется скриптом при удержании мыши */
-.hs-magnifier-active .hs-magnifier-glass {
-    display: block;
-}
-
-/* Контейнер картинки */
-.deck-image-container {
-    position: relative;
-    margin: 25px 0;
-
-    /* Красивая рамка контейнера */
-    border: 1px solid rgba(61, 43, 31, 0.2);
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.05); /* Легкая подложка */
-
-    /* Скрываем всё, что вылезает, пока не кликнули */
-    overflow: hidden;
-
-    /* Плавная анимация высоты при раскрытии */
-    transition: all 0.3s ease;
-    cursor: zoom-in;
-}
-
-/* Сама картинка */
-.deck-showcase-img {
-    display: block;
-    width: 100%;       /* По умолчанию сжата по ширине */
-    height: auto;      /* Высота авто */
-    max-width: 100%;
-    margin: 0 auto;
-    transition: width 0.3s ease; /* Плавное изменение ширины */
-}
-
-/* --- СОСТОЯНИЕ: АКТИВЕН (РАСКРЫТ) --- */
-.deck-image-container.is-expanded {
-    overflow-x: auto; /* Включаем горизонтальную прокрутку */
-    cursor: zoom-out;
-    background: rgba(0, 0, 0, 0.1); /* Чуть темнее фон для акцента */
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.1); /* Внутренняя тень */
-
-    /* Для мобильных: инерционная прокрутка (как в нативных приложениях) */
-    -webkit-overflow-scrolling: touch;
-}
-
-.deck-image-container.is-expanded .deck-showcase-img {
-    /* Ключевой момент: заставляем картинку стать большой */
-    width: auto;       /* Отменяем 100% ширины */
-    max-width: none;   /* Убираем ограничение */
-    min-width: 600px;  /* Минимальная ширина, при которой читается текст карт */
-    margin: 0;         /* Убираем центрирование, чтобы скроллить от начала */
-}
-
-/* --- ВИЗУАЛЬНЫЕ ПОДСКАЗКИ --- */
-
-/* Иконка лупы поверх картинки */
-.zoom-hint-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    background: rgba(26, 5, 37, 0.6);
-    backdrop-filter: blur(4px);
-    border-radius: 50%;
-    border: 2px solid var(--hs-gold);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none; /* Пропускаем клик сквозь иконку */
-}
-
-.zoom-hint-icon svg {
-    fill: var(--hs-gold-bright);
-    width: 30px;
-    height: 30px;
-}
-
-/* Показываем иконку при наведении (на десктопе) */
-.deck-image-container:hover .zoom-hint-icon {
-    opacity: 1;
-}
-/* Скрываем иконку, когда уже раскрыли */
-.deck-image-container.is-expanded .zoom-hint-icon {
-    opacity: 0 !important;
-}
-
-/* Текст-подсказка снизу */
-.tap-hint {
-    text-align: center;
-    font-size: 0.85rem;
-    color: var(--wood-dark);
-    opacity: 0.7;
-    margin-top: 8px;
-    font-style: italic;
-}
-
-/* Контейнер */
-.deck-image-container {
-    position: relative;
-    display: inline-block;
-    cursor: zoom-in;
-    margin: 25px 0;
-    text-align: center;
-
-    /* ВАЖНО ДЛЯ МОБИЛЬНЫХ:
-       Запрещаем браузеру обрабатывать жесты (скролл, зум страницы) внутри этого блока,
-       чтобы мы могли управлять лупой пальцем без помех. */
-    touch-action: none;
-    -webkit-tap-highlight-color: transparent; /* Убираем синюю подсветку при клике на Android/iOS */
-}
-
-/* При удержании */
-.deck-image-container:active,
-.deck-image-container.hs-magnifier-active {
-    cursor: none;
-}
-
-/* Лупа */
-.hs-magnifier-glass {
-    position: absolute;
-    display: none;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-
-    /* Стилистика */
-    border: 4px solid var(--hs-gold);
-    box-shadow:
-        0 10px 25px rgba(0,0,0,0.6),
-        inset 0 0 40px rgba(255,255,255,0.3);
-
-    background-color: #150a18; /* Темный фон, пока грузится HD картинка */
-    background-repeat: no-repeat;
-
-    pointer-events: none;
-    z-index: 100;
-}
-
-/* Показ лупы */
-.hs-magnifier-active .hs-magnifier-glass {
-    display: block;
-}
-
-/* Добавляем прицел в центр лупы */
-.hs-magnifier-glass::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 10px;
-    height: 10px;
-
-    /* Рисуем маленький крестик или точку */
-    background: rgba(255, 0, 0, 0.5); /* Полупрозрачная красная точка */
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    box-shadow: 0 0 2px black;
-}
     </style>
 </head>
+
 <body>
 
     <div class="guide-container">
@@ -635,13 +402,14 @@
 
                 <div id="deckContainer" class="deck-image-container with-shadow">
                     <img src="deck.png"
-                         data-zoom-src="deck.png"
                          alt="Hearthstone Deck Showcase"
-                         class="deck-showcase-img">
-
-                    <div class="hs-magnifier-glass"></div>
+                         class="deck-showcase-img zoom-trigger" onclick="openZoom(this.src)">
                 </div>
-
+                <dialog id="zoomDialog" onclick="this.close()">
+                    <div class="zoom-container">
+                      <img id="zoomedImage" src="" alt="">
+                    </div>
+                  </dialog>
                 <p style="text-align: center; font-size: 0.9rem; opacity: 0.7; margin-top: -15px;">
                     <small>Нажмите или коснитесь картинки для увеличения</small>
                 </p>
@@ -705,99 +473,34 @@
         <img id="hsLightboxImg" src="" alt="Deck View" class="hs-panning-content">
     </div>
 
+
     <script>
-        (function() {
-            // НАСТРОЙКИ
-            const ZOOM_LEVEL = 2.5;   // Сила увеличения
-            const TOUCH_OFFSET = 100; // На сколько пикселей поднимать лупу над пальцем
-            const MOUSE_OFFSET = 40;  // Небольшой отступ для мыши, чтобы курсор не мешал
+const dialog = document.getElementById('zoomDialog');
+const zoomedImg = document.getElementById('zoomedImage');
 
-            const container = document.getElementById('deckContainer');
-            const img = container.querySelector('.deck-showcase-img');
-            const glass = container.querySelector('.hs-magnifier-glass');
+function openZoom(src) {
+  zoomedImg.src = src;
+  dialog.showModal(); // Открывает поверх всего
 
-            const zoomImageSrc = img.getAttribute('data-zoom-src') || img.src;
+  // Обнуляем трансформацию при открытии
+  zoomedImg.style.transform = 'scale(1)';
+  zoomedImg.style.transformOrigin = 'center';
+}
 
-            // --- ЛОГИКА ---
+// Механика слежения за мышкой (ЗУМ)
+dialog.onmousemove = (e) => {
+  if (!dialog.open) return;
 
-            const startMagnifier = (e) => {
-                if (e.type === 'mousedown' && e.button !== 0) return;
-                e.preventDefault();
+  const { clientX, clientY } = e;
+  // Вычисляем положение курсора в процентах относительно окна
+  const x = (clientX / window.innerWidth) * 100;
+  const y = (clientY / window.innerHeight) * 100;
 
-                container.classList.add('hs-magnifier-active');
-                glass.style.backgroundImage = `url('${zoomImageSrc}')`;
-                glass.style.backgroundSize = `${img.width * ZOOM_LEVEL}px ${img.height * ZOOM_LEVEL}px`;
+  zoomedImg.style.transformOrigin = `${x}% ${y}%`;
+  zoomedImg.style.transform = 'scale(2.5)';
+};
 
-                moveMagnifier(e);
-            };
-
-            const moveMagnifier = (e) => {
-                let clientX, clientY, isTouch;
-
-                // Определяем, палец это или мышь
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                    isTouch = true;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                    isTouch = false;
-                }
-
-                const rect = img.getBoundingClientRect();
-
-                // X и Y - это координаты ТОЧКИ, КОТОРУЮ МЫ ХОТИМ УВИДЕТЬ (палец)
-                let x = clientX - rect.left;
-                let y = clientY - rect.top;
-
-                // Проверка выхода за границы (чтобы не ломать математику)
-                if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-
-                const glassRadius = glass.offsetWidth / 2;
-
-                // 1. ПОЗИЦИЯ САМОЙ ЛУПЫ (ФИЗИЧЕСКАЯ)
-                // Центрируем по горизонтали относительно пальца
-                glass.style.left = `${x - glassRadius}px`;
-
-                // По вертикали сдвигаем ВВЕРХ на offset
-                // Если это тач - поднимаем высоко. Если мышь - чуть-чуть.
-                const currentOffset = isTouch ? TOUCH_OFFSET : MOUSE_OFFSET;
-                glass.style.top = `${y - glassRadius - currentOffset}px`;
-
-                // 2. ПОЗИЦИЯ ФОНА ВНУТРИ (ЧТО МЫ ВИДИМ)
-                // Формула остается прежней: мы фокусируемся на координатах (x, y),
-                // независимо от того, куда улетела сама лупа.
-                const bgPosX = -(x * ZOOM_LEVEL - glassRadius);
-                const bgPosY = -(y * ZOOM_LEVEL - glassRadius);
-
-                glass.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
-            };
-
-            const stopMagnifier = () => {
-                container.classList.remove('hs-magnifier-active');
-            };
-
-            // --- СОБЫТИЯ ---
-
-            container.addEventListener('mousedown', startMagnifier);
-            container.addEventListener('mousemove', (e) => {
-                if (container.classList.contains('hs-magnifier-active')) moveMagnifier(e);
-            });
-            container.addEventListener('mouseup', stopMagnifier);
-            container.addEventListener('mouseleave', stopMagnifier);
-
-            // Touch events
-            container.addEventListener('touchstart', startMagnifier, { passive: false });
-            container.addEventListener('touchmove', (e) => {
-                 if (container.classList.contains('hs-magnifier-active')) {
-                    e.preventDefault();
-                    moveMagnifier(e);
-                }
-            }, { passive: false });
-            container.addEventListener('touchend', stopMagnifier);
-            container.addEventListener('touchcancel', stopMagnifier);
-        })();
+// Для мобильных (простой тап для закрытия уже есть в HTML: onclick="this.close()")
     </script>
 </body>
 </html>
