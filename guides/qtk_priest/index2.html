@@ -3,79 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Image Viewer</title>
     <style>
-        :root {
-            --max-guide-width: 600px;
-            --shadow-color: rgba(139, 92, 246, 0.4);
-            --glow-color: rgba(59, 130, 246, 0.3);
-            /* Цвет текста для лучшей читаемости на пергаменте */
-            --text-ink: #2b221b;
-        }
-
+        /* Базовые стили статьи */
         body {
-            background-color: #f3eddd;
-            display: flex;
-            justify-content: center;
-            padding: 40px 10px;
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-        }
-
-        .guide-container {
-            width: 100%;
-            max-width: var(--max-guide-width);
-
-            /* ЕДИНЫЙ ФОН: теперь он здесь */
-            background: #ddc481 url('bg.png') center;
-            background-size: 100% auto;
-
-            /* Закругление краев, раз уж нет отдельных крышек свитка */
-            border-radius: 12px;
-            border: 2px solid #c4b197;
-
-            /* Твои фирменные тени */
-            filter:
-                drop-shadow(0 5px 10px var(--shadow-color))
-                drop-shadow(0 0 10px var(--glow-color));
-
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        .content {
-            padding: 40px 10%; /* Равномерные отступы со всех сторон */
-            color: var(--text-ink);
+            font-family: sans-serif;
             line-height: 1.6;
-            word-wrap: break-word;
+            padding: 20px;
+            margin: 0;
+            background: #f4f4f4;
         }
 
-        h1 {
-            font-size: clamp(1.5rem, 5vw, 2rem);
+        /* 1. Стили для миниатюры в статье */
+        .article-image {
+            max-width: 100%;
+            height: auto;
+            cursor: zoom-in; /* Курсор намекает на клик */
+            border-radius: 8px;
+            transition: opacity 0.3s;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .article-image:hover {
+            opacity: 0.9;
+        }
+
+        /* 2. Стили для Лайтбокса (Overlay) */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9); /* Темный фон */
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none; /* Чтобы не мешал, когда скрыт */
+            transition: opacity 0.3s ease;
+            overflow: hidden; /* Скрываем вылезающие части картинки */
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Картинка внутри лайтбокса */
+        .lightbox-img {
+            position: absolute; /* Позволяет свободно двигать transform'ом */
+            max-width: none; /* Снимаем ограничение ширины, чтобы работало панорамирование */
+            max-height: none;
+            cursor: zoom-out;
+            /* Начальное состояние - по центру */
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            /* Убираем дефолтное поведение перетаскивания браузера */
+            user-select: none;
+            -webkit-user-drag: none;
+            will-change: transform; /* Оптимизация производительности */
+        }
+
+        /* Подсказка для пользователя */
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            pointer-events: none;
             text-align: center;
-            color: #6e48aa;
-            margin-top: 0;
-        }
-
-        p {
-            margin-bottom: 1.2rem;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <div class="guide-container">
-        <article class="content">
-            <h1>Магия одного фона</h1>
-            <p>Теперь весь гайд — это единый блок. Мы перенесли повторяющееся изображение <code>bg.png</code> прямо в основной контейнер.</p>
-            <p><strong>Что это дает:</strong></p>
-            <ul>
-                <li>Никаких стыков между верхней, средней и нижней частями.</li>
-                <li>Макет стал еще более адаптивным.</li>
-                <li>Проще управлять тенями и закруглениями углов.</li>
-            </ul>
-            <p>Просто убедись, что твоя картинка <code>bg.png</code> бесшовная по вертикали, и она будет бесконечно тянуться вслед за твоим текстом.</p>
-        </article>
+    <article>
+        <h1>Пример умного просмотра изображений</h1>
+        <p>Нажмите на изображение ниже, чтобы открыть его в полном размере.</p>
+
+        <img
+            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2400&q=80"
+            alt="Пейзаж"
+            class="article-image"
+            id="thumbnail"
+        >
+
+        <p>Если изображение больше экрана, на десктопе просто двигайте мышкой. На смартфоне — тащите пальцем.</p>
+    </article>
+
+    <div class="lightbox" id="lightbox">
+        <img src="" alt="Full view" class="lightbox-img" id="lightboxImg">
+        <div class="hint">На десктопе: двигай мышью | На смартфоне: тяни пальцем</div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const thumbnail = document.getElementById('thumbnail');
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightboxImg');
+
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            // --- ОТКРЫТИЕ ---
+            thumbnail.addEventListener('click', () => {
+                // Подставляем src
+                lightboxImg.src = thumbnail.src;
+
+                // Сбрасываем стили трансформации перед открытием
+                lightboxImg.style.transform = `translate(-50%, -50%)`;
+                lightboxImg.style.left = '50%';
+                lightboxImg.style.top = '50%';
+
+                lightbox.classList.add('active');
+            });
+
+            // --- ЗАКРЫТИЕ ---
+            lightbox.addEventListener('click', (e) => {
+                // Закрываем только если клик не был частью драга (на мобильных)
+                if (!isDragging) {
+                    lightbox.classList.remove('active');
+                }
+            });
+
+            // --- ЛОГИКА ДЛЯ ДЕСКТОПА (Мышь) ---
+            lightbox.addEventListener('mousemove', (e) => {
+                // Проверяем, десктоп ли это (нет касаний)
+                if (window.matchMedia("(pointer: fine)").matches) {
+                    panImageDesktop(e.clientX, e.clientY);
+                }
+            });
+
+            function panImageDesktop(mouseX, mouseY) {
+                const wWidth = window.innerWidth;
+                const wHeight = window.innerHeight;
+                const imgWidth = lightboxImg.offsetWidth;
+                const imgHeight = lightboxImg.offsetHeight;
+
+                // Если картинка меньше экрана, не двигаем
+                if (imgWidth <= wWidth && imgHeight <= wHeight) return;
+
+                // Вычисляем смещение.
+                // 0% мыши -> левый край картинки, 100% мыши -> правый край.
+                // Формула: (Разница размеров) * (Позиция мыши / Ширина экрана)
+
+                let xOffset = 0;
+                let yOffset = 0;
+
+                if (imgWidth > wWidth) {
+                    const xRatio = mouseX / wWidth;
+                    xOffset = (imgWidth - wWidth) * (xRatio - 0.5); // -0.5 для центровки
+                }
+
+                if (imgHeight > wHeight) {
+                    const yRatio = mouseY / wHeight;
+                    yOffset = (imgHeight - wHeight) * (yRatio - 0.5);
+                }
+
+                // Применяем transform. Обрати внимание на знаки.
+                // Мы сдвигаем "translate(-50%, -50%)" минус наш оффсет.
+                lightboxImg.style.transform = `translate(calc(-50% - ${xOffset}px), calc(-50% - ${yOffset}px))`;
+            }
+
+            // --- ЛОГИКА ДЛЯ СМАРТФОНА (Touch Drag) ---
+            // Для мобильных мы реализуем логику "схвати и тяни"
+
+            let currentX = 0;
+            let currentY = 0;
+            let lastTouchX = 0;
+            let lastTouchY = 0;
+
+            lightboxImg.addEventListener('touchstart', (e) => {
+                // Если картинка меньше экрана, драг не нужен
+                if (lightboxImg.offsetWidth <= window.innerWidth && lightboxImg.offsetHeight <= window.innerHeight) return;
+
+                isDragging = true;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+
+                // Нужно остановить всплытие, чтобы не сработало закрытие по клику
+                e.stopPropagation();
+            }, { passive: false });
+
+            lightboxImg.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault(); // Блокируем скролл страницы под низом
+
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+
+                const deltaX = touchX - lastTouchX;
+                const deltaY = touchY - lastTouchY;
+
+                // Обновляем текущие координаты
+                currentX += deltaX;
+                currentY += deltaY;
+
+                lastTouchX = touchX;
+                lastTouchY = touchY;
+
+                // Ограничиваем границы (Clamping), чтобы не утащить картинку в бесконечность
+                // Граница - это половина разницы ширины картинки и экрана
+                const maxX = (lightboxImg.offsetWidth - window.innerWidth) / 2;
+                const maxY = (lightboxImg.offsetHeight - window.innerHeight) / 2;
+
+                // Если картинка меньше экрана по одной из осей, запрещаем движение по ней
+                const limitX = lightboxImg.offsetWidth > window.innerWidth ? maxX : 0;
+                const limitY = lightboxImg.offsetHeight > window.innerHeight ? maxY : 0;
+
+                // Clamp logic
+                if (currentX > limitX) currentX = limitX;
+                if (currentX < -limitX) currentX = -limitX;
+                if (currentY > limitY) currentY = limitY;
+                if (currentY < -limitY) currentY = -limitY;
+
+                lightboxImg.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+            }, { passive: false });
+
+            lightboxImg.addEventListener('touchend', () => {
+                setTimeout(() => { isDragging = false; }, 50); // Небольшая задержка
+            });
+        });
+    </script>
 </body>
 </html>
